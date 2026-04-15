@@ -1,0 +1,352 @@
+[
+    {
+        "id":  3284688493,
+        "name":  "Pasquale Agresta",
+        "company":  "Altura Coffee",
+        "phone":  "0401165508",
+        "email":  "admin@alturacoffee.com.au",
+        "qty":  0,
+        "size":  "TBC",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Unknown",
+        "project":  "Coffee labels � regular reorder customer",
+        "requiredBy":  "TBC",
+        "status":  "reorder",
+        "returning":  true,
+        "lastOrderDate":  "2026-04-09",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3284688493",
+        "notes":  "Regular customer. Confirmed delivery address 9 Apr � order in progress. Flag for reorder follow-up in ~60 days.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e � Returning customer detected. Last contact 9 Apr 2026. Marked as Wants to Reorder.",
+                        "time":  "14 Apr, 8:39pm"
+                    }
+                ]
+    },
+    {
+        "id":  3290028458,
+        "name":  "Graffiti Slaps",
+        "company":  "Craze n Cherry Co",
+        "phone":  "+61423620251",
+        "email":  "slapslover101@gmail.com",
+        "qty":  500,
+        "size":  "100x100mm",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Rectangle",
+        "project":  "Merch artist - stickers",
+        "requiredBy":  "Whenever",
+        "status":  "new-lead",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3290028458",
+        "notes":  "100x100mm is square not rectangle — quote as square. Merch artist.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — New enquiry detected. Path A: 500x 100x100mm synthetic rolls. Awaiting quote approval.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289892856,
+        "name":  "Sel (Drink Mateco)",
+        "company":  "Drink Mateco",
+        "phone":  "",
+        "email":  "hello@drinkmateco.com",
+        "qty":  6,
+        "size":  "110x20mm",
+        "product":  "Sheets",
+        "material":  "Synthetic",
+        "shape":  "Rectangle",
+        "project":  "6x individual logo stickers for bottles - 3-4 of each colour (white + green)",
+        "requiredBy":  "Not specified",
+        "status":  "new-lead",
+        "path":  "B",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289892856",
+        "notes":  "Non-standard. Custom individual stickers, 6 total, ~11cm long x ~2cm high. Not a standard form enquiry — email from Sel direct to Emanuel. Needs manual quote.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Non-standard enquiry. 6 individual die-cut stickers, 2 colours. Needs manual pricing and quote from Tina.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289850387,
+        "name":  "Sabine Straume",
+        "company":  "Rise \u0026 Grind Coffee Co",
+        "phone":  "+61469288093",
+        "email":  "sabine136@inbox.lv",
+        "qty":  2000,
+        "size":  "Unknown",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Custom",
+        "project":  "Coffee van and events - logo stickers",
+        "requiredBy":  "ASAP",
+        "status":  "new-lead",
+        "path":  "C",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289850387",
+        "notes":  "Path C: dimension missing. Shape is custom. Needs clarification on size before quote.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path C: size missing. Clarification needed before quote can be sent.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289844918,
+        "name":  "Helainah Ann",
+        "company":  "Scratchedd",
+        "phone":  "+61426417597",
+        "email":  "scratchedd1@gmail.com",
+        "qty":  500,
+        "size":  "Unknown",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Circle",
+        "project":  "Baking business",
+        "requiredBy":  "No rush",
+        "status":  "new-lead",
+        "path":  "C",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289844918",
+        "notes":  "Path C: said \u0027smallest size possible\u0027. Could suggest 30mm circle as starting point and quote it.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path C: vague size. Suggest quoting 30mm circle as smallest standard and flagging assumption.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289835123,
+        "name":  "Lorrisse Heperi",
+        "company":  "KLEOKD",
+        "phone":  "+61427404096",
+        "email":  "lorrinia@gmail.com",
+        "qty":  500,
+        "size":  "40x40mm",
+        "product":  "Rolls",
+        "material":  "Paper",
+        "shape":  "Circle",
+        "project":  "Food",
+        "requiredBy":  "6 weeks",
+        "status":  "new-lead",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289835123",
+        "notes":  "Path A. 40mm circle paper. Price: $152 ex GST / $167.20 inc GST. Upsell: 1000 = $205.20 ex / $225.72 inc.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path A ready. 500x 40mm circle paper rolls. $167.20 inc GST. Awaiting quote approval.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289831853,
+        "name":  "Helen Sagato Leiataua",
+        "company":  "Chicken \u0026 Chips Shop",
+        "phone":  "0461549117",
+        "email":  "misshelensyd@gmail.com",
+        "qty":  500,
+        "size":  "Unknown",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Circle",
+        "project":  "Chicken and chips shop",
+        "requiredBy":  "Next month",
+        "status":  "new-lead",
+        "path":  "C",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289831853",
+        "notes":  "Path C: said \u0027the bigger the better\u0027. Suggest quoting 3 sizes: 70mm ($228), 80mm ($216), 90mm ($240) and let her choose.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path C: vague size. Recommend quoting 3 circle sizes for food business.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289822136,
+        "name":  "Kylie Jane",
+        "company":  "Soop",
+        "phone":  "0421943957",
+        "email":  "kyliejane18@live.com.au",
+        "qty":  500,
+        "size":  "60x60mm",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Circle",
+        "project":  "Labels for takeaway soup containers",
+        "requiredBy":  "End of next week",
+        "status":  "new-lead",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289822136",
+        "notes":  "Path A. 60mm circle synthetic. URGENT: needs by end of next week. Price: $216 ex GST / $237.60 inc. Upsell: 1000 = $228 ex / $250.80 inc.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path A ready. URGENT timeline. 500x 60mm circle synthetic. $237.60 inc GST. Awaiting approval.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289678520,
+        "name":  "Fred Hendricks",
+        "company":  "Private (Home Chutney)",
+        "phone":  "+61499009243",
+        "email":  "fredhen21@yahoo.com.au",
+        "qty":  500,
+        "size":  "80x40mm",
+        "product":  "Rolls",
+        "material":  "Synthetic",
+        "shape":  "Rectangle",
+        "project":  "Home-made chutney labels",
+        "requiredBy":  "Soon",
+        "status":  "new-lead",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289678520",
+        "notes":  "Path A. 8cm x 4cm = 80x40mm. Converted from cm. Nearest table size 70x40mm. Flag to Tina.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path A. Dimension given in cm, converted to 80x40mm. Nearest size 70x40mm - flag to Tina before sending.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289659703,
+        "name":  "Natasha Doolan",
+        "company":  "Classy by Chloe",
+        "phone":  "+61450051448",
+        "email":  "classybychloe@hotmail.com",
+        "qty":  500,
+        "size":  "30x30mm",
+        "product":  "Rolls",
+        "material":  "Paper",
+        "shape":  "Circle",
+        "project":  "Logo labels",
+        "requiredBy":  "May",
+        "status":  "new-lead",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289659703",
+        "notes":  "Path A. 30mm circle paper. Price: $152 ex GST / $167.20 inc GST.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path A ready. 500x 30mm circle paper. $167.20 inc GST. Awaiting approval.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3289476171,
+        "name":  "Glen Duggan",
+        "company":  "Clarry (Bar)",
+        "phone":  "+61403102533",
+        "email":  "glen.duggan@icloud.com",
+        "qty":  1500,
+        "size":  "60x60mm",
+        "product":  "Rolls",
+        "material":  "Paper",
+        "shape":  "Circle",
+        "project":  "Bar stickers for dockets/bills",
+        "requiredBy":  "20 May",
+        "status":  "new-lead",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-14",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3289476171",
+        "notes":  "Path A. 1500x 60mm circle paper. Nearest qty tier is 2000. Price: $292.41 ex / $321.65 inc GST. Flag qty uptiering to Tina.",
+        "log":  [
+                    {
+                        "type":  "note",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e — Path A. 1500 qty, priced at 2000 tier. 60mm circle paper. $321.65 inc GST. Awaiting approval.",
+                        "time":  "14 Apr, 7:09pm"
+                    }
+                ]
+    },
+    {
+        "id":  3291163036,
+        "name":  "Georgina Dolling",
+        "company":  "Dollings \u0026 Assoc",
+        "phone":  "+61418207797",
+        "email":  "georginadolling@bigpond.com",
+        "qty":  500,
+        "size":  "50x50mm",
+        "product":  "Rolls",
+        "material":  "Paper",
+        "shape":  "Circle",
+        "project":  "Wrapping ceramics",
+        "requiredBy":  "No rush",
+        "status":  "pending",
+        "path":  "A",
+        "assigned":  "Tina",
+        "source":  "Direct enquiry",
+        "called":  false,
+        "dateAdded":  "2026-04-15",
+        "helpscoutUrl":  "https://secure.helpscout.net/conversation/3291163036/14657",
+        "notes":  "50mm circle = quoted as 50x50mm. Paper labels. Quote sent .00 ex GST.",
+        "log":  [
+                    {
+                        "type":  "quote-sent",
+                        "text":  "\u003cstrong\u003eClaw\u003c/strong\u003e � Quote sent. 500x 50x50mm paper rolls. $171.00 ex GST. Status: Pending.",
+                        "time":  "15 Apr, 11:52am"
+                    }
+                ]
+    }
+]
