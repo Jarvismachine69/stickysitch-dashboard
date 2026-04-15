@@ -333,7 +333,7 @@
         "shape":  "Circle",
         "project":  "Wrapping ceramics",
         "requiredBy":  "No rush",
-        "status":  "pending",
+        "status":  "quote-sent",
         "path":  "A",
         "assigned":  "Tina",
         "source":  "Direct enquiry",
