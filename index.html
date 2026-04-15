@@ -4,773 +4,153 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StickySitch — Sales Pipeline</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-
   :root {
-    --bg: #F7F6F2;
-    --surface: #FFFFFF;
-    --surface2: #F0EEE8;
-    --border: #E2DED6;
-    --border2: #CBC7BE;
-    --text: #1A1916;
-    --text2: #6B6860;
-    --text3: #9E9B93;
-    --accent: #D85A30;
-    --accent-bg: #FAECE7;
-    --accent-text: #7A2E10;
-    --green: #1D9E75;
-    --green-bg: #E1F5EE;
-    --green-text: #0F4E3A;
-    --blue: #185FA5;
-    --blue-bg: #E6F1FB;
-    --blue-text: #0C3D6B;
-    --amber: #BA7517;
-    --amber-bg: #FAEEDA;
-    --amber-text: #5C3A0A;
-    --purple: #534AB7;
-    --purple-bg: #EEEDFE;
-    --purple-text: #2E2870;
-    --gray-bg: #F0EEE8;
-    --gray-text: #5F5E5A;
-    --red-bg: #FCEBEB;
-    --red-text: #7A1F1F;
-    --font: 'DM Sans', sans-serif;
-    --mono: 'DM Mono', monospace;
+    --bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EEE8;--border:#E2DED6;--border2:#CBC7BE;
+    --text:#1A1916;--text2:#6B6860;--text3:#9E9B93;--accent:#D85A30;--accent-bg:#FAECE7;--accent-text:#7A2E10;
+    --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#0F4E3A;--blue:#185FA5;--blue-bg:#E6F1FB;--blue-text:#0C3D6B;
+    --amber:#BA7517;--amber-bg:#FAEEDA;--amber-text:#5C3A0A;--purple:#534AB7;--purple-bg:#EEEDFE;--purple-text:#2E2870;
+    --gray-bg:#F0EEE8;--gray-text:#5F5E5A;--red-bg:#FCEBEB;--red-text:#7A1F1F;
+    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-mark{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+  .logo-mark svg{width:16px;height:16px;fill:white;}
+  .logo-name{font-size:15px;font-weight:600;letter-spacing:-0.3px;}
+  .logo-name span{color:var(--accent);}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;}
+  .sync-dot.offline{background:var(--accent);}
+  .sync-label{font-size:12px;color:var(--text3);}
+  .view-toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
+  .view-btn{padding:5px 12px;border-radius:5px;border:none;background:transparent;font-family:var(--font);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
+  .view-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .view-btn svg{width:13px;height:13px;}
+  .add-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+  .add-btn:hover{opacity:.88;}
+  .btn-ghost{display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
+  .stats-bar{padding:16px 24px;display:flex;gap:12px;overflow-x:auto;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:130px;flex:1;}
+  .stat-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+  .stat-value{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-0.5px;}
+  .stat-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  .stat-value.green{color:var(--green);}.stat-value.amber{color:var(--amber);}.stat-value.accent{color:var(--accent);}
+  .filters{padding:0 24px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .filter-btn{padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:var(--surface);font-family:var(--font);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;}
+  .filter-btn.active{background:var(--text);color:var(--surface);border-color:var(--text);}
+  .search-wrap{margin-left:auto;position:relative;}
+  .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text3);}
+  .search-input{padding:6px 12px 6px 30px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-family:var(--font);font-size:13px;color:var(--text);width:200px;outline:none;}
+  .search-input:focus{border-color:var(--border2);}
+  .search-input::placeholder{color:var(--text3);}
+  .main{padding:0 24px 40px;}
+  .kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;}
+  .k-col{min-width:220px;width:220px;flex-shrink:0;}
+  .k-col-head{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;margin-bottom:8px;}
+  .k-col-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;}
+  .k-count{font-size:11px;font-weight:500;background:var(--surface2);color:var(--text3);padding:1px 7px;border-radius:10px;}
+  .k-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,transform .1s;}
+  .k-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+  .k-card.won{border-left:3px solid var(--green);}.k-card.retarget{border-left:3px solid var(--accent);}.k-card.closed{border-left:3px solid var(--border2);opacity:.7;}
+  .k-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+  .k-card-name{font-size:13px;font-weight:600;color:var(--text);}
+  .k-card-company{font-size:11px;color:var(--text3);margin-top:1px;}
+  .k-card-size{font-size:11px;font-family:var(--mono);color:var(--text2);background:var(--surface2);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+  .k-card-row{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .badge{display:inline-flex;align-items:center;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;gap:3px;}
+  .badge-rolls{background:var(--green-bg);color:var(--green-text);}
+  .badge-sheets{background:var(--blue-bg);color:var(--blue-text);}
+  .badge-jrny{background:var(--amber-bg);color:var(--amber-text);}
+  .badge-called{background:var(--green-bg);color:var(--green-text);}
+  .badge-nocall{background:var(--gray-bg);color:var(--gray-text);}
+  .call-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .call-dot.yes{background:var(--green);}.call-dot.no{background:var(--border2);}
+  .k-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+  .k-assigned{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+  .avatar{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
+  .av-d{background:var(--accent-bg);color:var(--accent-text);}
+  .av-t{background:var(--purple-bg);color:var(--purple-text);}
+  .av-o{background:var(--blue-bg);color:var(--blue-text);}
+  .k-day{font-size:11px;color:var(--text3);font-family:var(--mono);}
+  .k-day.urgent{color:var(--accent);font-weight:500;}
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:var(--surface2);}
+  tbody td{padding:11px 14px;font-size:13px;color:var(--text);vertical-align:middle;}
+  .td-name{font-weight:600;}.td-company{font-size:11px;color:var(--text3);margin-top:1px;}.td-size{font-family:var(--mono);font-size:12px;color:var(--text2);}
+  .status-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 9px;border-radius:10px;white-space:nowrap;}
+  .sp-new{background:var(--purple-bg);color:var(--purple-text);}
+  .sp-quote{background:var(--blue-bg);color:var(--blue-text);}
+  .sp-fu1{background:var(--amber-bg);color:var(--amber-text);}
+  .sp-fu2{background:var(--purple-bg);color:var(--purple-text);}
+  .sp-called{background:var(--green-bg);color:var(--green-text);}
+  .sp-connected{background:var(--green-bg);color:var(--green-text);}
+  .sp-won{background:var(--green-bg);color:var(--green-text);}
+  .sp-closed{background:var(--gray-bg);color:var(--gray-text);}
+  .sp-retarget{background:var(--accent-bg);color:var(--accent-text);}
+  .sp-reorder{background:var(--amber-bg);color:var(--amber-text);}
+  .next-action{font-size:11px;font-weight:500;}
+  .na-urgent{color:var(--accent);}.na-normal{color:var(--text2);}.na-done{color:var(--green);}.na-retarget{color:var(--amber);}
+  .action-btns{display:flex;gap:5px;}
+  .action-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+  .action-btn:hover{background:var(--surface2);border-color:var(--border2);}
+  .action-btn svg{width:13px;height:13px;color:var(--text2);}
+  .action-btn.call-btn:hover{background:var(--green-bg);border-color:var(--green);}
+  .action-btn.call-btn:hover svg{color:var(--green);}
+  .action-btn.delete-btn:hover{background:var(--red-bg);border-color:#e57373;}
+  .action-btn.delete-btn:hover svg{color:#c0392b;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,25,22,.45);z-index:200;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;border:1px solid var(--border);}
+  .modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
+  .modal-title{font-size:16px;font-weight:600;}.modal-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+  .modal-close{width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);flex-shrink:0;}
+  .modal-close:hover{background:var(--surface2);}
+  .modal-body{padding:18px 20px;}
+  .modal-section{margin-bottom:18px;}
+  .modal-section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .info-item{background:var(--surface2);border-radius:8px;padding:8px 10px;}
+  .info-item-label{font-size:11px;color:var(--text3);margin-bottom:2px;}.info-item-value{font-size:13px;font-weight:500;color:var(--text);}
+  .log-entry{padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;}
+  .log-entry:last-child{border-bottom:none;}
+  .log-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .log-icon.email{background:var(--blue-bg);}.log-icon.call{background:var(--green-bg);}.log-icon.note{background:var(--amber-bg);}
+  .log-icon svg{width:12px;height:12px;}
+  .log-icon.email svg{color:var(--blue);}.log-icon.call svg{color:var(--green);}.log-icon.note svg{color:var(--amber);}
+  .log-text{font-size:12px;color:var(--text2);line-height:1.5;flex:1;}
+  .log-text strong{color:var(--text);font-weight:500;}
+  .log-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:1px;}
+  .status-select,.note-input,.form-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;background:var(--surface);color:var(--text);outline:none;}
+  .status-select:focus,.note-input:focus,.form-input:focus{border-color:var(--border2);}
+  .note-input{resize:vertical;min-height:70px;margin-bottom:8px;}
+  .note-input::placeholder,.form-input::placeholder{color:var(--text3);}
+  .status-select{margin-bottom:8px;}
+  .modal-actions{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+  .btn-primary{flex:1;padding:9px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+  .btn-primary:hover{opacity:.88;}
+  .btn-call{display:flex;align-items:center;gap:6px;padding:9px 14px;background:var(--green-bg);color:var(--green-text);border:1px solid var(--green);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
+  .btn-call svg{width:13px;height:13px;}
+  .btn-secondary{padding:9px 14px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;cursor:pointer;}
+  .btn-secondary:hover{background:var(--surface2);}
+  .btn-danger{padding:9px 14px;background:var(--red-bg);color:var(--red-text);border:1px solid #e57373;border-radius:8px;font-family:var(--font);font-size:13px;cursor:pointer;}
+  .form-row{margin-bottom:12px;}
+  .form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;display:block;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+  .toast.show{opacity:1;}
+  @media(max-width:640px){
+    .header{padding:0 14px;}.stats-bar{padding:12px 14px;}.filters{padding:0 14px 12px;}.main{padding:0 14px 30px;}
+    .form-grid{grid-template-columns:1fr;}.search-wrap{display:none;}.logo-name{display:none;}
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 14px;
-  }
-
-  /* HEADER */
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-mark {
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .logo-mark svg { width: 16px; height: 16px; fill: white; }
-
-  .logo-name {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-  }
-
-  .logo-name span { color: var(--accent); }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .view-toggle {
-    display: flex;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 3px;
-    gap: 2px;
-  }
-
-  .view-btn {
-    padding: 5px 12px;
-    border-radius: 5px;
-    border: none;
-    background: transparent;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: all .15s;
-  }
-
-  .view-btn.active {
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  }
-
-  .view-btn svg { width: 13px; height: 13px; }
-
-  .add-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 7px 14px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-
-  .add-btn:hover { opacity: .88; }
-
-  /* STATS BAR */
-  .stats-bar {
-    padding: 16px 24px;
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    min-width: 130px;
-    flex: 1;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    color: var(--text3);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-bottom: 4px;
-  }
-
-  .stat-value {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
-
-  .stat-sub {
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 2px;
-  }
-
-  .stat-value.green { color: var(--green); }
-  .stat-value.amber { color: var(--amber); }
-  .stat-value.accent { color: var(--accent); }
-
-  /* FILTERS */
-  .filters {
-    padding: 0 24px 16px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .filter-btn {
-    padding: 5px 12px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    background: var(--surface);
-    font-family: var(--font);
-    font-size: 12px;
-    color: var(--text2);
-    cursor: pointer;
-    transition: all .15s;
-  }
-
-  .filter-btn.active {
-    background: var(--text);
-    color: var(--surface);
-    border-color: var(--text);
-  }
-
-  .filter-btn:hover:not(.active) { border-color: var(--border2); }
-
-  .search-wrap {
-    margin-left: auto;
-    position: relative;
-  }
-
-  .search-wrap svg {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 13px;
-    height: 13px;
-    color: var(--text3);
-  }
-
-  .search-input {
-    padding: 6px 12px 6px 30px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    font-family: var(--font);
-    font-size: 13px;
-    color: var(--text);
-    width: 200px;
-    outline: none;
-  }
-
-  .search-input:focus { border-color: var(--border2); }
-  .search-input::placeholder { color: var(--text3); }
-
-  /* MAIN */
-  .main { padding: 0 24px 40px; }
-
-  /* KANBAN */
-  .kanban {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 16px;
-    align-items: flex-start;
-  }
-
-  .k-col {
-    min-width: 220px;
-    width: 220px;
-    flex-shrink: 0;
-  }
-
-  .k-col-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-  }
-
-  .k-col-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-  }
-
-  .k-count {
-    font-size: 11px;
-    font-weight: 500;
-    background: var(--surface2);
-    color: var(--text3);
-    padding: 1px 7px;
-    border-radius: 10px;
-  }
-
-  .k-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: border-color .15s, transform .1s;
-  }
-
-  .k-card:hover {
-    border-color: var(--border2);
-    transform: translateY(-1px);
-  }
-
-  .k-card.won { border-left: 3px solid var(--green); }
-  .k-card.retarget { border-left: 3px solid var(--accent); }
-  .k-card.closed { border-left: 3px solid var(--border2); opacity: .7; }
-
-  .k-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-
-  .k-card-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .k-card-company {
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 1px;
-  }
-
-  .k-card-size {
-    font-size: 11px;
-    font-family: var(--mono);
-    color: var(--text2);
-    background: var(--surface2);
-    padding: 2px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-  }
-
-  .k-card-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: 10px;
-    font-weight: 500;
-    padding: 2px 7px;
-    border-radius: 10px;
-    gap: 3px;
-  }
-
-  .badge-rolls { background: var(--green-bg); color: var(--green-text); }
-  .badge-sheets { background: var(--blue-bg); color: var(--blue-text); }
-  .badge-jrny { background: var(--amber-bg); color: var(--amber-text); }
-  .badge-called { background: var(--green-bg); color: var(--green-text); }
-  .badge-nocall { background: var(--gray-bg); color: var(--gray-text); }
-  .badge-won { background: var(--green-bg); color: var(--green-text); }
-  .badge-lost { background: var(--gray-bg); color: var(--gray-text); }
-  .badge-retarget { background: var(--accent-bg); color: var(--accent-text); }
-
-  .call-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-
-  .call-dot.yes { background: var(--green); }
-  .call-dot.no { background: var(--border2); }
-
-  .k-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-  }
-
-  .k-assigned {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: var(--text3);
-  }
-
-  .avatar {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 600;
-  }
-
-  .av-d { background: var(--accent-bg); color: var(--accent-text); }
-  .av-t { background: var(--purple-bg); color: var(--purple-text); }
-  .av-o { background: var(--blue-bg); color: var(--blue-text); }
-
-  .k-day {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: var(--mono);
-  }
-
-  .k-day.urgent { color: var(--accent); font-weight: 500; }
-
-  /* TABLE */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  thead th {
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background .1s;
-  }
-
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface2); }
-
-  tbody td {
-    padding: 11px 14px;
-    font-size: 13px;
-    color: var(--text);
-    vertical-align: middle;
-  }
-
-  .td-name { font-weight: 600; }
-  .td-company { font-size: 11px; color: var(--text3); margin-top: 1px; }
-  .td-size { font-family: var(--mono); font-size: 12px; color: var(--text2); }
-
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 9px;
-    border-radius: 10px;
-    white-space: nowrap;
-  }
-
-  .sp-new { background: var(--purple-bg); color: var(--purple-text); }
- .sp-quote { background: var(--blue-bg); color: var(--blue-text); }
-  .sp-fu1 { background: var(--amber-bg); color: var(--amber-text); }
-  .sp-fu2 { background: var(--purple-bg); color: var(--purple-text); }
-  .sp-called { background: var(--green-bg); color: var(--green-text); }
-  .sp-connected { background: var(--green-bg); color: var(--green-text); }
-  .sp-won { background: var(--green-bg); color: var(--green-text); }
-  .sp-closed { background: var(--gray-bg); color: var(--gray-text); }
-  .sp-retarget { background: var(--accent-bg); color: var(--accent-text); }
-
-  .next-action {
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  .na-urgent { color: var(--accent); }
-  .na-normal { color: var(--text2); }
-  .na-done { color: var(--green); }
-  .na-retarget { color: var(--amber); }
-
-  .action-btns {
-    display: flex;
-    gap: 5px;
-  }
-
-  .action-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all .15s;
-  }
-
-  .action-btn:hover { background: var(--surface2); border-color: var(--border2); }
-  .action-btn svg { width: 13px; height: 13px; color: var(--text2); }
-  .action-btn.call-btn:hover { background: var(--green-bg); border-color: var(--green); }
-  .action-btn.call-btn:hover svg { color: var(--green); }
-  .action-btn.delete-btn:hover { background: var(--red-bg); border-color: #e57373; }
-  .action-btn.delete-btn:hover svg { color: #c0392b; }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(26,25,22,.45);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border-radius: 14px;
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    border: 1px solid var(--border);
-  }
-
-  .modal-header {
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .modal-title { font-size: 16px; font-weight: 600; }
-  .modal-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
-
-  .modal-close {
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: var(--text2);
-    flex-shrink: 0;
-  }
-
-  .modal-close:hover { background: var(--surface2); }
-
-  .modal-body { padding: 18px 20px; }
-
-  .modal-section { margin-bottom: 18px; }
-
-  .modal-section-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-bottom: 8px;
-  }
-
-  .info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .info-item {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 8px 10px;
-  }
-
-  .info-item-label { font-size: 11px; color: var(--text3); margin-bottom: 2px; }
-  .info-item-value { font-size: 13px; font-weight: 500; color: var(--text); }
-
-  .log-entry {
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
-
-  .log-entry:last-child { border-bottom: none; }
-
-  .log-icon {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .log-icon.email { background: var(--blue-bg); }
-  .log-icon.call { background: var(--green-bg); }
-  .log-icon.note { background: var(--amber-bg); }
-  .log-icon svg { width: 12px; height: 12px; }
-  .log-icon.email svg { color: var(--blue); }
-  .log-icon.call svg { color: var(--green); }
-  .log-icon.note svg { color: var(--amber); }
-
-  .log-text { font-size: 12px; color: var(--text2); line-height: 1.5; flex: 1; }
-  .log-text strong { color: var(--text); font-weight: 500; }
-  .log-time { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 1px; }
-
-  .status-select {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-    margin-bottom: 8px;
-  }
-
-  .status-select:focus { border-color: var(--border2); }
-
-  .note-input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-    resize: vertical;
-    min-height: 70px;
-    margin-bottom: 8px;
-  }
-
-  .note-input:focus { border-color: var(--border2); }
-  .note-input::placeholder { color: var(--text3); }
-
-  .modal-actions {
-    display: flex;
-    gap: 8px;
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-  }
-
-  .btn-primary {
-    flex: 1;
-    padding: 9px 16px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-
-  .btn-primary:hover { opacity: .88; }
-
-  .btn-call {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 14px;
-    background: var(--green-bg);
-    color: var(--green-text);
-    border: 1px solid var(--green);
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-
-  .btn-call:hover { opacity: .85; }
-  .btn-call svg { width: 13px; height: 13px; }
-
-  .btn-secondary {
-    padding: 9px 14px;
-    background: transparent;
-    color: var(--text2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all .15s;
-  }
-
-  .btn-secondary:hover { background: var(--surface2); }
-
-  /* ADD LEAD MODAL */
-  .form-row { margin-bottom: 12px; }
-  .form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 4px; display: block; }
-
-  .form-input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: var(--font);
-    font-size: 13px;
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-  }
-
-  .form-input:focus { border-color: var(--accent); }
-  .form-input::placeholder { color: var(--text3); }
-
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  .retarget-banner {
-    background: var(--accent-bg);
-    border: 1px solid #F5C4B3;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 12px;
-    color: var(--accent-text);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    line-height: 1.5;
-  }
-
-  .retarget-banner svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
-
-  /* RESPONSIVE */
-  @media (max-width: 640px) {
-    .header { padding: 0 14px; }
-    .stats-bar { padding: 12px 14px; }
-    .filters { padding: 0 14px 12px; }
-    .main { padding: 0 14px 30px; }
-    .stat-card { min-width: 110px; padding: 10px 12px; }
-    .stat-value { font-size: 20px; }
-    .search-wrap { display: none; }
-    .logo-name { display: none; }
-    .form-grid { grid-template-columns: 1fr; }
-  }
-
-  .view-kanban .table-wrap { display: none; }
-  .view-table .kanban { display: none; }
 </style>
 </head>
 <body>
@@ -783,6 +163,8 @@
     <span class="logo-name">Sticky<span>Sitch</span></span>
   </div>
   <div class="header-right">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span class="sync-label" id="sync-label">Connecting...</span>
     <div class="view-toggle">
       <button class="view-btn active" id="btn-kanban" onclick="setView('kanban')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="4" height="12" rx="1"/><rect x="6" y="2" width="4" height="8" rx="1"/><rect x="11" y="2" width="4" height="10" rx="1"/></svg>
@@ -793,11 +175,7 @@
         List
       </button>
     </div>
-    <button class="add-btn" onclick="loadLeads()" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);margin-right:6px;">
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm4-1l3-3 3 3M8 5v6"/></svg>
-  Refresh
- </button>
- <button class="add-btn" onclick="openAddModal()">
+    <button class="add-btn" onclick="openAddModal()">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
       Add lead
     </button>
@@ -807,153 +185,83 @@
 <div class="stats-bar" id="stats-bar"></div>
 
 <div class="filters">
-  <button class="filter-btn active" onclick="setFilter('all', this)">All leads</button>
-  <button class="filter-btn" onclick="setFilter('needs-call', this)">Needs call</button>
-  <button class="filter-btn" onclick="setFilter('jrny', this)">JRNY leads</button>
-  <button class="filter-btn" onclick="setFilter('retarget', this)">Retarget</button>
-  <button class="filter-btn" onclick="setFilter('returning', this)">Returning Customers</button>
-  <button class="filter-btn" onclick="setFilter('won', this)">Won</button>
+  <button class="filter-btn active" onclick="setFilter('all',this)">All leads</button>
+  <button class="filter-btn" onclick="setFilter('needs-call',this)">Needs call</button>
+  <button class="filter-btn" onclick="setFilter('jrny',this)">JRNY leads</button>
+  <button class="filter-btn" onclick="setFilter('retarget',this)">Retarget</button>
+  <button class="filter-btn" onclick="setFilter('returning',this)">Returning</button>
+  <button class="filter-btn" onclick="setFilter('won',this)">Won</button>
   <div class="search-wrap">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
     <input class="search-input" type="text" placeholder="Search leads..." id="search-input" oninput="renderAll()">
   </div>
 </div>
 
-<div class="main view-kanban" id="main-view">
+<div class="main" id="main-view">
   <div class="kanban" id="kanban-board"></div>
   <div class="table-wrap" id="table-view" style="display:none;">
     <table>
-      <thead>
-        <tr>
-          <th>Lead</th>
-          <th>Product</th>
-          <th>Status</th>
-          <th>Called</th>
-          <th>Assigned</th>
-          <th>Next action</th>
-          <th></th>
-        </tr>
-      </thead>
+      <thead><tr><th>Lead</th><th>Product</th><th>Status</th><th>Called</th><th>Assigned</th><th>Next action</th><th></th></tr></thead>
       <tbody id="table-body"></tbody>
     </table>
   </div>
 </div>
 
-<!-- LEAD DETAIL MODAL -->
+<!-- DETAIL MODAL -->
 <div class="modal-overlay" id="detail-modal">
   <div class="modal">
     <div class="modal-header">
-      <div>
-        <div class="modal-title" id="modal-lead-name">—</div>
-        <div class="modal-sub" id="modal-lead-company">—</div>
-      </div>
+      <div><div class="modal-title" id="modal-lead-name">—</div><div class="modal-sub" id="modal-lead-company">—</div></div>
       <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="modal-section" id="retarget-banner-wrap" style="display:none;">
-        <div class="retarget-banner">
-          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.5.5 0 01.5.5v3.5h2a.5.5 0 010 1h-2.5a.5.5 0 01-.5-.5V4.5A.5.5 0 018 4z"/></svg>
-          This lead was closed without a sale. Send a retargeting email in ~30 days to re-engage them with a personalised offer.
-        </div>
-      </div>
-      <div class="modal-section">
-        <div class="modal-section-title">Lead details</div>
-        <div class="info-grid" id="modal-info-grid"></div>
-      </div>
+      <div class="modal-section"><div class="modal-section-title">Lead details</div><div class="info-grid" id="modal-info-grid"></div></div>
       <div class="modal-section">
         <div class="modal-section-title">Update status</div>
         <select class="status-select" id="modal-status-select"></select>
-        <textarea class="note-input" id="modal-note" placeholder="Add a call note or update (e.g. 'Called — no answer', 'Spoke with owner, resending quote')"></textarea>
-        <div style="font-size:11px;color:var(--text3);">All updates are logged with your name and timestamp.</div>
+        <textarea class="note-input" id="modal-note" placeholder="Add a note (e.g. 'Called — no answer', 'Resending quote')"></textarea>
+        <div style="font-size:11px;color:var(--text3);">Updates are saved instantly and visible to everyone.</div>
       </div>
-      <div class="modal-section">
-        <div class="modal-section-title">Activity log</div>
-        <div id="modal-activity-log"></div>
-      </div>
+      <div class="modal-section"><div class="modal-section-title">Activity log</div><div id="modal-activity-log"></div></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-call" id="modal-call-btn" onclick="logCall()">
+      <button class="btn-call" onclick="logCall()">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>
         Log call
       </button>
       <button class="btn-primary" onclick="saveUpdate()">Save update</button>
+      <button class="btn-danger" onclick="confirmDelete()">Delete</button>
       <button class="btn-secondary" onclick="closeModal('detail-modal')">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ADD LEAD MODAL -->
+<!-- ADD MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <div class="modal-header">
-      <div>
-        <div class="modal-title">Add new lead</div>
-        <div class="modal-sub">Enter the lead details from HelpScout</div>
-      </div>
+      <div><div class="modal-title">Add new lead</div><div class="modal-sub">Saved instantly to the database</div></div>
       <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label">Full name *</label>
-          <input class="form-input" id="f-name" placeholder="Wesley King">
-        </div>
-        <div class="form-row">
-          <label class="form-label">Company</label>
-          <input class="form-input" id="f-company" placeholder="Wez Paint An Panel">
-        </div>
+        <div class="form-row"><label class="form-label">Full name *</label><input class="form-input" id="f-name" placeholder="Georgina Dolling"></div>
+        <div class="form-row"><label class="form-label">Company</label><input class="form-input" id="f-company" placeholder="Dollings & Assoc"></div>
       </div>
       <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label">Phone *</label>
-          <input class="form-input" id="f-phone" placeholder="+61 4xx xxx xxx">
-        </div>
-        <div class="form-row">
-          <label class="form-label">Email *</label>
-          <input class="form-input" id="f-email" placeholder="email@example.com">
-        </div>
+        <div class="form-row"><label class="form-label">Phone *</label><input class="form-input" id="f-phone" placeholder="+61 4xx xxx xxx"></div>
+        <div class="form-row"><label class="form-label">Email *</label><input class="form-input" id="f-email" placeholder="email@example.com"></div>
       </div>
       <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label">Quantity</label>
-          <input class="form-input" id="f-qty" type="number" placeholder="500">
-        </div>
-        <div class="form-row">
-          <label class="form-label">Size</label>
-          <input class="form-input" id="f-size" placeholder="50x50mm">
-        </div>
+        <div class="form-row"><label class="form-label">Quantity</label><input class="form-input" id="f-qty" type="number" placeholder="500"></div>
+        <div class="form-row"><label class="form-label">Size</label><input class="form-input" id="f-size" placeholder="50x50mm"></div>
       </div>
       <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label">Product type</label>
-          <select class="form-input" id="f-product">
-            <option value="Rolls">Rolls (≥500)</option>
-            <option value="Sheets">Sheets (&lt;500)</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label class="form-label">Assigned to</label>
-          <select class="form-input" id="f-assigned">
-            <option value="David">David</option>
-            <option value="Tina">Tina</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
+        <div class="form-row"><label class="form-label">Product</label><select class="form-input" id="f-product"><option value="Rolls">Rolls (≥500)</option><option value="Sheets">Sheets (&lt;500)</option></select></div>
+        <div class="form-row"><label class="form-label">Assigned to</label><select class="form-input" id="f-assigned"><option value="Tina">Tina</option><option value="David">David</option></select></div>
       </div>
-      <div class="form-row">
-        <label class="form-label">Lead source</label>
-        <select class="form-input" id="f-source">
-          <option value="JRNY / Meta">JRNY / Meta</option>
-          <option value="Direct enquiry">Direct enquiry</option>
-          <option value="Shopify">Shopify</option>
-          <option value="Referral">Referral</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label class="form-label">Notes</label>
-        <textarea class="note-input" id="f-notes" placeholder="Any extra context about this lead..."></textarea>
-      </div>
+      <div class="form-row"><label class="form-label">Lead source</label><select class="form-input" id="f-source"><option value="JRNY / Meta">JRNY / Meta</option><option value="Direct enquiry">Direct enquiry</option><option value="Shopify">Shopify</option><option value="Referral">Referral</option></select></div>
+      <div class="form-row"><label class="form-label">Notes</label><textarea class="note-input" id="f-notes" placeholder="Any extra context..."></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="addLead()">Add lead</button>
@@ -962,244 +270,154 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+const SUPABASE_URL = 'https://dkbdkogrojutolrwylwy.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrYmRrb2dyb2p1dG9scnd5bHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTMwODQsImV4cCI6MjA5MTc2OTA4NH0.SqBfJ1WtniX8U3KX-b0N8esEoUxxP5LmVCrIR8YclGY';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
 const STATUSES = [
-  { id: 'new-lead',      label: 'New Lead',              pill: 'sp-new'     },
-  { id: 'reorder',       label: 'Wants to Reorder',      pill: 'sp-reorder' },
-  { id: 'quote-sent',    label: 'Quote Sent',            pill: 'sp-quote'   },
-  { id: 'call-attempted',label: 'Call Attempted',        pill: 'sp-called'  },
-  { id: 'call-connected',label: 'Call Connected',        pill: 'sp-connected'},
-  { id: 'followup-1',    label: 'Day 3 Follow-up Sent',  pill: 'sp-fu1'     },
-  { id: 'followup-2',    label: 'Day 7 Follow-up Sent',  pill: 'sp-fu2'     },
-  { id: 'won',           label: 'Closed — Won',          pill: 'sp-won'     },
-  { id: 'closed',        label: 'Closed — No Response',  pill: 'sp-closed'  },
-  { id: 'retarget',      label: 'Retarget (30 days)',    pill: 'sp-retarget'},
+  {id:'new-lead',label:'New Lead',pill:'sp-new'},
+  {id:'reorder',label:'Wants to Reorder',pill:'sp-reorder'},
+  {id:'quote-sent',label:'Quote Sent',pill:'sp-quote'},
+  {id:'call-attempted',label:'Call Attempted',pill:'sp-called'},
+  {id:'call-connected',label:'Call Connected',pill:'sp-connected'},
+  {id:'followup-1',label:'Day 3 Follow-up Sent',pill:'sp-fu1'},
+  {id:'followup-2',label:'Day 7 Follow-up Sent',pill:'sp-fu2'},
+  {id:'pending',label:'Pending',pill:'sp-quote'},
+  {id:'won',label:'Closed — Won',pill:'sp-won'},
+  {id:'closed',label:'Closed — No Response',pill:'sp-closed'},
+  {id:'retarget',label:'Retarget (30 days)',pill:'sp-retarget'},
 ];
 
 const KANBAN_COLS = [
-  { id: 'new-lead',       label: 'New Lead'             },
-  { id: 'reorder',        label: 'Wants to Reorder'     },
-  { id: 'quote-sent',     label: 'Quote Sent'           },
-  { id: 'call-attempted', label: 'Call Attempted'       },
-  { id: 'followup-1',     label: 'Day 3 Follow-up'      },
-  { id: 'followup-2',     label: 'Day 7 Follow-up'      },
-  { id: 'call-connected', label: 'Call Connected'       },
-  { id: 'won',            label: 'Won'                  },
-  { id: 'closed',         label: 'Closed'               },
-  { id: 'retarget',       label: 'Retarget'             },
+  {id:'new-lead',label:'New Lead'},
+  {id:'reorder',label:'Wants to Reorder'},
+  {id:'quote-sent',label:'Quote Sent'},
+  {id:'pending',label:'Pending'},
+  {id:'call-attempted',label:'Call Attempted'},
+  {id:'followup-1',label:'Day 3 Follow-up'},
+  {id:'followup-2',label:'Day 7 Follow-up'},
+  {id:'call-connected',label:'Call Connected'},
+  {id:'won',label:'Won'},
+  {id:'closed',label:'Closed'},
+  {id:'retarget',label:'Retarget'},
 ];
 
-const TODAY = new Date();
-
-function daysAgo(dateStr) {
-  const d = new Date(dateStr);
-  return Math.floor((TODAY - d) / 86400000);
-}
-
-function addDays(dateStr, n) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().split('T')[0];
-}
-
-function fmtDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('en-AU', {day:'numeric',month:'short'});
-}
-
-// Load leads from leads.json (same directory)
-async function loadLeads() {
-  try {
-    const r = await fetch('leads.json?t=' + Date.now());
-    if (r.ok) {
-      leads = await r.json();
-      renderAll();
-    }
-  } catch(e) {
-    console.warn('Could not load leads.json, using sample data');
-  }
-}
-
-let leads = [
-  {
-    id: 1, name: 'Wesley King', company: 'Wez Paint An Panel',
-    phone: '+61431595759', email: 'weskingv8@hotmail.com',
-    qty: 500, size: '50x50mm', product: 'Rolls',
-    status: 'quote-sent', assigned: 'Tina', source: 'JRNY / Meta',
-    called: false, dateAdded: '2026-04-11',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email — 500 x 50mm circle rolls', time: '11 Apr, 9:14am' }
-    ]
-  },
-  {
-    id: 2, name: 'Priya Sharma', company: 'Priya\'s Kitchen',
-    phone: '+61412345678', email: 'priya.sharma@gmail.com',
-    qty: 200, size: '40x60mm', product: 'Sheets',
-    status: 'followup-1', assigned: 'David', source: 'JRNY / Meta',
-    called: true, dateAdded: '2026-04-09',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email — 200 x 40x60mm sheets', time: '9 Apr, 10:02am' },
-      { type: 'call', text: '<strong>David</strong> called — no answer, left voicemail', time: '11 Apr, 9:30am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 1 email', time: '12 Apr, 8:05am' }
-    ]
-  },
-  {
-    id: 3, name: 'Marcus Taufa', company: 'MT Catering',
-    phone: '+61498765432', email: 'marcus.t@hotmail.com',
-    qty: 1000, size: '60x80mm', product: 'Rolls',
-    status: 'followup-2', assigned: 'Tina', source: 'Direct enquiry',
-    called: true, dateAdded: '2026-04-07',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email — 1000 x 60x80mm rolls', time: '7 Apr, 11:15am' },
-      { type: 'call', text: '<strong>Tina</strong> called — spoke briefly, customer said will think about it', time: '10 Apr, 9:45am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 1', time: '10 Apr, 8:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 2 — social proof story', time: '14 Apr, 8:00am' }
-    ]
-  },
-  {
-    id: 4, name: 'Amara Osei', company: 'Amara Foods',
-    phone: '+61487654321', email: 'amara@amarafoods.com.au',
-    qty: 3000, size: '70x90mm', product: 'Rolls',
-    status: 'won', assigned: 'David', source: 'JRNY / Meta',
-    called: true, dateAdded: '2026-04-05',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email — 3000 x 70x90mm rolls', time: '5 Apr, 9:00am' },
-      { type: 'call', text: '<strong>David</strong> called — great chat, customer very interested', time: '5 Apr, 9:22am' },
-      { type: 'note', text: '<strong>David</strong> marked as WON — order confirmed $420 + GST', time: '6 Apr, 2:15pm' }
-    ]
-  },
-  {
-    id: 5, name: 'Jay Patel', company: 'JP Skincare',
-    phone: '+61476543210', email: 'jay.patel@icloud.com',
-    qty: 800, size: '50x70mm', product: 'Rolls',
-    status: 'retarget', assigned: 'Tina', source: 'JRNY / Meta',
-    called: false, dateAdded: '2026-03-14',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email', time: '14 Mar, 9:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 1', time: '17 Mar, 8:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 2', time: '21 Mar, 8:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent close email — no response', time: '28 Mar, 8:00am' },
-      { type: 'note', text: '<strong>David</strong> moved to retarget — send email ~14 Apr', time: '28 Mar, 8:01am' }
-    ]
-  },
-  {
-    id: 6, name: 'Leilani Fono', company: 'Lani\'s Bakes',
-    phone: '+61465432109', email: 'leilani.fono@gmail.com',
-    qty: 100, size: '35x35mm', product: 'Sheets',
-    status: 'call-attempted', assigned: 'David', source: 'JRNY / Meta',
-    called: true, dateAdded: '2026-04-13',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email — 100 x 35x35mm sheets', time: '13 Apr, 10:00am' },
-      { type: 'call', text: '<strong>David</strong> called — no answer', time: '13 Apr, 10:15am' }
-    ]
-  },
-  {
-    id: 7, name: 'Rania Hassan', company: 'Rania Beauty',
-    phone: '+61454321098', email: 'rania.h@hotmail.com',
-    qty: 250, size: '45x60mm', product: 'Sheets',
-    status: 'closed', assigned: 'Tina', source: 'Direct enquiry',
-    called: false, dateAdded: '2026-04-01',
-    log: [
-      { type: 'email', text: '<strong>Tina</strong> sent quote email', time: '1 Apr, 9:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 1', time: '4 Apr, 8:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent follow-up 2', time: '8 Apr, 8:00am' },
-      { type: 'email', text: '<strong>Tina</strong> sent close email', time: '12 Apr, 8:00am' }
-    ]
-  }
-];
-
+let leads = [];
 let currentFilter = 'all';
 let currentView = 'kanban';
 let activeLeadId = null;
-let nextId = 10;
+const TODAY = new Date();
 
-function avatarEl(name) {
-  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const cls = name === 'David' ? 'av-d' : name === 'Tina' ? 'av-t' : 'av-o';
-  return `<div class="avatar ${cls}">${initials}</div>`;
+function daysAgo(d){return Math.floor((TODAY-new Date(d))/86400000);}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-AU',{day:'numeric',month:'short'});}
+function getStatusObj(id){return STATUSES.find(s=>s.id===id)||STATUSES[0];}
+function avatarEl(name){
+  const i=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const c=name==='David'?'av-d':name==='Tina'?'av-t':'av-o';
+  return `<div class="avatar ${c}">${i}</div>`;
 }
 
-function getStatusObj(id) { return STATUSES.find(s=>s.id===id) || STATUSES[0]; }
-
-function getNextAction(lead) {
-  const days = daysAgo(lead.dateAdded);
-  if (lead.status === 'won') return { text: 'Won', cls: 'na-done' };
-  if (lead.status === 'retarget') return { text: 'Send retarget email', cls: 'na-retarget' };
-  if (lead.status === 'reorder') return { text: 'Send reorder quote', cls: 'na-urgent' };
-  if (lead.status === 'closed') return { text: 'Move to retarget?', cls: 'na-normal' };
-  if (!lead.called) return { text: 'Call now', cls: 'na-urgent' };
-  if (lead.status === 'quote-sent' && days >= 3) return { text: 'Send Day 3 follow-up', cls: 'na-urgent' };
-  if (lead.status === 'followup-1' && days >= 7) return { text: 'Send Day 7 follow-up', cls: 'na-urgent' };
-  if (lead.status === 'followup-2' && days >= 14) return { text: 'Send close email', cls: 'na-urgent' };
-  if (lead.status === 'call-attempted') return { text: 'Try calling again', cls: 'na-normal' };
-  return { text: 'On track', cls: 'na-normal' };
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-function filteredLeads() {
-  const q = document.getElementById('search-input').value.toLowerCase();
-  return leads.filter(l => {
-    const matchSearch = !q ||
-      l.name.toLowerCase().includes(q) ||
-      (l.company||'').toLowerCase().includes(q) ||
-      l.status.toLowerCase().includes(q);
-    const matchFilter =
-      currentFilter === 'all' ? true :
-      currentFilter === 'needs-call' ? !l.called && l.status !== 'won' && l.status !== 'closed' :
-      currentFilter === 'jrny' ? l.source === 'JRNY / Meta' :
-      currentFilter === 'retarget' ? l.status === 'retarget' :
-      currentFilter === 'returning' ? l.returning === true :
-      currentFilter === 'won' ? l.status === 'won' : true;
-    return matchSearch && matchFilter;
+function setSyncStatus(online){
+  document.getElementById('sync-dot').className='sync-dot'+(online?'':' offline');
+  document.getElementById('sync-label').textContent=online?'Live':'Offline';
+}
+
+async function loadLeads(){
+  const {data,error}=await db.from('leads').select('*').order('created_at',{ascending:false});
+  if(error){console.error(error);setSyncStatus(false);return;}
+  leads=data;
+  setSyncStatus(true);
+  renderAll();
+}
+
+// Real-time subscription
+function subscribeRealtime(){
+  db.channel('leads-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'leads'},payload=>{
+      if(payload.eventType==='INSERT') leads.unshift(payload.new);
+      else if(payload.eventType==='UPDATE') leads=leads.map(l=>l.id===payload.new.id?payload.new:l);
+      else if(payload.eventType==='DELETE') leads=leads.filter(l=>l.id!==payload.old.id);
+      renderAll();
+    })
+    .subscribe(status=>{setSyncStatus(status==='SUBSCRIBED');});
+}
+
+function filteredLeads(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  return leads.filter(l=>{
+    const ms=!q||l.name.toLowerCase().includes(q)||(l.company||'').toLowerCase().includes(q)||l.status.toLowerCase().includes(q);
+    const mf=currentFilter==='all'?true:
+      currentFilter==='needs-call'?!l.called&&l.status!=='won'&&l.status!=='closed':
+      currentFilter==='jrny'?l.source==='JRNY / Meta':
+      currentFilter==='retarget'?l.status==='retarget':
+      currentFilter==='returning'?l.returning_customer===true:
+      currentFilter==='won'?l.status==='won':true;
+    return ms&&mf;
   });
 }
 
-function renderStats() {
-  const total = leads.length;
-  const won = leads.filter(l=>l.status==='won').length;
-  const needsCall = leads.filter(l=>!l.called && l.status!=='won' && l.status!=='closed' && l.status!=='retarget').length;
-  const retarget = leads.filter(l=>l.status==='retarget').length;
-  const rate = total > 0 ? Math.round((won/total)*100) : 0;
-  document.getElementById('stats-bar').innerHTML = `
+function getNextAction(l){
+  const d=daysAgo(l.date_added);
+  if(l.status==='won') return{text:'Won',cls:'na-done'};
+  if(l.status==='retarget') return{text:'Send retarget email',cls:'na-retarget'};
+  if(l.status==='reorder') return{text:'Send reorder quote',cls:'na-urgent'};
+  if(l.status==='closed') return{text:'Move to retarget?',cls:'na-normal'};
+  if(!l.called) return{text:'Call now',cls:'na-urgent'};
+  if(l.status==='quote-sent'&&d>=3) return{text:'Send Day 3 follow-up',cls:'na-urgent'};
+  if(l.status==='followup-1'&&d>=7) return{text:'Send Day 7 follow-up',cls:'na-urgent'};
+  if(l.status==='followup-2'&&d>=14) return{text:'Send close email',cls:'na-urgent'};
+  if(l.status==='call-attempted') return{text:'Try calling again',cls:'na-normal'};
+  return{text:'On track',cls:'na-normal'};
+}
+
+function renderStats(){
+  const total=leads.length,won=leads.filter(l=>l.status==='won').length;
+  const needsCall=leads.filter(l=>!l.called&&l.status!=='won'&&l.status!=='closed'&&l.status!=='retarget').length;
+  const retarget=leads.filter(l=>l.status==='retarget').length;
+  const rate=total>0?Math.round((won/total)*100):0;
+  document.getElementById('stats-bar').innerHTML=`
     <div class="stat-card"><div class="stat-label">Total leads</div><div class="stat-value">${total}</div><div class="stat-sub">all time</div></div>
     <div class="stat-card"><div class="stat-label">Closed won</div><div class="stat-value green">${won}</div><div class="stat-sub">${rate}% conversion</div></div>
     <div class="stat-card"><div class="stat-label">Needs call</div><div class="stat-value accent">${needsCall}</div><div class="stat-sub">not yet called</div></div>
-    <div class="stat-card"><div class="stat-label">Retarget</div><div class="stat-value amber">${retarget}</div><div class="stat-sub">30-day re-engage</div></div>
-  `;
+    <div class="stat-card"><div class="stat-label">Retarget</div><div class="stat-value amber">${retarget}</div><div class="stat-sub">30-day re-engage</div></div>`;
 }
 
-function renderKanban() {
-  const fl = filteredLeads();
-  const board = document.getElementById('kanban-board');
-  board.innerHTML = KANBAN_COLS.map(col => {
-    const cards = fl.filter(l=>l.status===col.id);
-    const wonCls = col.id==='won' ? ' won' : col.id==='retarget' ? ' retarget' : col.id==='closed' ? ' closed' : '';
+function renderKanban(){
+  const fl=filteredLeads();
+  document.getElementById('kanban-board').innerHTML=KANBAN_COLS.map(col=>{
+    const cards=fl.filter(l=>l.status===col.id);
+    const wonCls=col.id==='won'?' won':col.id==='retarget'?' retarget':col.id==='closed'?' closed':'';
     return `<div class="k-col">
-      <div class="k-col-head">
-        <span class="k-col-title">${col.label}</span>
-        <span class="k-count">${cards.length}</span>
-      </div>
-      ${cards.map(l => {
-        const days = daysAgo(l.dateAdded);
-        const urgent = !l.called && l.status !== 'won' && l.status !== 'closed';
+      <div class="k-col-head"><span class="k-col-title">${col.label}</span><span class="k-count">${cards.length}</span></div>
+      ${cards.map(l=>{
+        const days=daysAgo(l.date_added);
+        const urgent=!l.called&&l.status!=='won'&&l.status!=='closed';
         return `<div class="k-card${wonCls}" onclick="openDetail(${l.id})">
           <div class="k-card-top">
-            <div>
-              <div class="k-card-name">${l.name}</div>
-              <div class="k-card-company">${l.company||''}</div>
-            </div>
-            <div class="k-card-size">${l.size}</div>
+            <div><div class="k-card-name">${l.name}</div><div class="k-card-company">${l.company||''}</div></div>
+            <div class="k-card-size">${l.size||'—'}</div>
           </div>
           <div class="k-card-row">
-            <span class="badge badge-${l.product.toLowerCase()}">${l.product}</span>
-            ${l.source==='JRNY / Meta' ? '<span class="badge badge-jrny">JRNY</span>' : ''}
-            ${l.returning ? '<span class="badge badge-returning">Returning</span>' : ''}
-            <span class="badge ${l.called ? 'badge-called' : 'badge-nocall'}">
-              <span class="call-dot ${l.called ? 'yes' : 'no'}"></span>
-              ${l.called ? 'Called' : 'Not called'}
+            <span class="badge badge-${(l.product||'').toLowerCase()}">${l.product||''}</span>
+            ${l.source==='JRNY / Meta'?'<span class="badge badge-jrny">JRNY</span>':''}
+            <span class="badge ${l.called?'badge-called':'badge-nocall'}">
+              <span class="call-dot ${l.called?'yes':'no'}"></span>${l.called?'Called':'Not called'}
             </span>
           </div>
           <div class="k-card-footer">
-            <div class="k-assigned">${avatarEl(l.assigned)} ${l.assigned}</div>
-            <div class="k-day ${urgent ? 'urgent' : ''}">Day ${days}</div>
+            <div class="k-assigned">${avatarEl(l.assigned||'?')} ${l.assigned||'—'}</div>
+            <div class="k-day ${urgent?'urgent':''}">Day ${days}</div>
           </div>
         </div>`;
       }).join('')}
@@ -1207,196 +425,177 @@ function renderKanban() {
   }).join('');
 }
 
-function renderTable() {
-  const fl = filteredLeads();
-  document.getElementById('table-body').innerHTML = fl.map(l => {
-    const st = getStatusObj(l.status);
-    const na = getNextAction(l);
+function renderTable(){
+  const fl=filteredLeads();
+  document.getElementById('table-body').innerHTML=fl.map(l=>{
+    const st=getStatusObj(l.status);
+    const na=getNextAction(l);
     return `<tr onclick="openDetail(${l.id})">
-      <td>
-        <div class="td-name">${l.name}</div>
-        <div class="td-company">${l.company||''}</div>
-      </td>
-      <td>
-        <div class="td-size">${l.qty} × ${l.size}</div>
-        <div style="font-size:11px;color:var(--text3);">${l.product}</div>
-      </td>
+      <td><div class="td-name">${l.name}</div><div class="td-company">${l.company||''}</div></td>
+      <td><div class="td-size">${l.qty||0} × ${l.size||'—'}</div><div style="font-size:11px;color:var(--text3);">${l.product||''}</div></td>
       <td><span class="status-pill ${st.pill}">${st.label}</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);">
-          <span class="call-dot ${l.called ? 'yes' : 'no'}"></span>
-          ${l.called ? 'Yes' : 'No'}
-        </div>
-      </td>
-      <td>
-        <div style="display:flex;align-items:center;gap:5px;">
-          ${avatarEl(l.assigned)}
-          <span style="font-size:12px;color:var(--text2);">${l.assigned}</span>
-        </div>
-      </td>
+      <td><div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);">
+        <span class="call-dot ${l.called?'yes':'no'}"></span>${l.called?'Yes':'No'}</div></td>
+      <td><div style="display:flex;align-items:center;gap:5px;">${avatarEl(l.assigned||'?')}<span style="font-size:12px;color:var(--text2);">${l.assigned||'—'}</span></div></td>
       <td><span class="next-action ${na.cls}">${na.text}</span></td>
-      <td>
-        <div class="action-btns" onclick="event.stopPropagation()">
-          <button class="action-btn call-btn" title="Log call" onclick="quickCall(${l.id})">
-            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>
-          </button>
-          <button class="action-btn" title="Open details">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h7M6 8h7M6 13h7M2 3h1M2 8h1M2 13h1"/></svg>
-          </button>
-          <button class="action-btn delete-btn" title="Delete lead" onclick="deleteLead(${l.id})"
-            style="color:var(--text3);">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
-          </button>
-        </div>
-      </td>
+      <td><div class="action-btns" onclick="event.stopPropagation()">
+        <button class="action-btn call-btn" title="Log call" onclick="quickCall(${l.id})">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>
+        </button>
+        <button class="action-btn delete-btn" title="Delete" onclick="deleteLeadDirect(${l.id})">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
+        </button>
+      </div></td>
     </tr>`;
   }).join('');
 }
 
-function renderAll() {
-  renderStats();
-  renderKanban();
-  renderTable();
+function renderAll(){renderStats();renderKanban();renderTable();}
+
+function setView(v){
+  currentView=v;
+  document.getElementById('kanban-board').style.display=v==='kanban'?'flex':'none';
+  document.getElementById('table-view').style.display=v==='table'?'block':'none';
+  document.getElementById('btn-kanban').classList.toggle('active',v==='kanban');
+  document.getElementById('btn-table').classList.toggle('active',v==='table');
 }
 
-function setView(v) {
-  currentView = v;
-  const main = document.getElementById('main-view');
-  main.className = 'main view-' + v;
-  document.getElementById('kanban-board').style.display = v === 'kanban' ? 'flex' : 'none';
-  document.getElementById('table-view').style.display = v === 'table' ? 'block' : 'none';
-  document.getElementById('btn-kanban').classList.toggle('active', v==='kanban');
-  document.getElementById('btn-table').classList.toggle('active', v==='table');
-  renderAll();
-}
-
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderAll();
 }
 
-function openDetail(id) {
-  activeLeadId = id;
-  const l = leads.find(x=>x.id===id);
-  if (!l) return;
-  document.getElementById('modal-lead-name').textContent = l.name;
-  document.getElementById('modal-lead-company').textContent = l.company + (l.source === 'JRNY / Meta' ? ' · JRNY lead' : '');
-  document.getElementById('retarget-banner-wrap').style.display = l.status === 'retarget' ? 'block' : 'none';
-  document.getElementById('modal-info-grid').innerHTML = [
-    { label: 'Phone', value: `<a href="tel:${l.phone}" style="color:var(--blue)">${l.phone}</a>` },
-    { label: 'Email', value: `<a href="mailto:${l.email}" style="color:var(--blue);word-break:break-all">${l.email}</a>` },
-    { label: 'Product', value: `${l.qty} × ${l.size}` },
-    { label: 'Type', value: l.product },
-    { label: 'Assigned', value: l.assigned },
-    { label: 'Source', value: l.source },
-    { label: 'Added', value: fmtDate(l.dateAdded) },
-    { label: 'Called', value: l.called ? 'Yes' : '<span style="color:var(--accent)">Not yet</span>' },
-  ].map(item => `<div class="info-item"><div class="info-item-label">${item.label}</div><div class="info-item-value">${item.value}</div></div>`).join('');
-  const sel = document.getElementById('modal-status-select');
-  sel.innerHTML = STATUSES.map(s => `<option value="${s.id}" ${s.id===l.status?'selected':''}>${s.label}</option>`).join('');
-  document.getElementById('modal-note').value = '';
-  document.getElementById('modal-activity-log').innerHTML = [...l.log].reverse().map(e => `
+function openDetail(id){
+  activeLeadId=id;
+  const l=leads.find(x=>x.id===id);
+  if(!l) return;
+  document.getElementById('modal-lead-name').textContent=l.name;
+  document.getElementById('modal-lead-company').textContent=(l.company||'')+(l.source==='JRNY / Meta'?' · JRNY lead':'');
+  document.getElementById('modal-info-grid').innerHTML=[
+    {label:'Phone',value:`<a href="tel:${l.phone}" style="color:var(--blue)">${l.phone||'—'}</a>`},
+    {label:'Email',value:`<a href="mailto:${l.email}" style="color:var(--blue);word-break:break-all">${l.email||'—'}</a>`},
+    {label:'Product',value:`${l.qty||0} × ${l.size||'—'}`},
+    {label:'Type',value:l.product||'—'},
+    {label:'Assigned',value:l.assigned||'—'},
+    {label:'Source',value:l.source||'—'},
+    {label:'Added',value:fmtDate(l.date_added)},
+    {label:'Called',value:l.called?'Yes':'<span style="color:var(--accent)">Not yet</span>'},
+  ].map(i=>`<div class="info-item"><div class="info-item-label">${i.label}</div><div class="info-item-value">${i.value}</div></div>`).join('');
+  const sel=document.getElementById('modal-status-select');
+  sel.innerHTML=STATUSES.map(s=>`<option value="${s.id}" ${s.id===l.status?'selected':''}>${s.label}</option>`).join('');
+  document.getElementById('modal-note').value='';
+  const log=Array.isArray(l.log)?l.log:[];
+  document.getElementById('modal-activity-log').innerHTML=[...log].reverse().map(e=>`
     <div class="log-entry">
-      <div class="log-icon ${e.type}">
-        ${e.type==='email' ? '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-6.687 4.012a.5.5 0 01-.626 0L1 5.383V12a1 1 0 001 1h12a1 1 0 001-1V5.383z"/></svg>' :
-         e.type==='call' ? '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>' :
+      <div class="log-icon ${e.type||'note'}">
+        ${e.type==='email'?'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-6.687 4.012a.5.5 0 01-.626 0L1 5.383V12a1 1 0 001 1h12a1 1 0 001-1V5.383z"/></svg>':
+         e.type==='call'?'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>':
          '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v13.5a.5.5 0 01-.777.416L8 13.101l-5.223 2.815A.5.5 0 012 15.5V2z"/></svg>'}
       </div>
-      <div style="flex:1">
-        <div class="log-text">${e.text}</div>
-        <div class="log-time">${e.time}</div>
-      </div>
-    </div>`).join('');
+      <div style="flex:1"><div class="log-text">${e.text||''}</div><div class="log-time">${e.time||''}</div></div>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No activity yet.</div>';
   document.getElementById('detail-modal').classList.add('open');
 }
 
-function saveUpdate() {
-  const l = leads.find(x=>x.id===activeLeadId);
-  if (!l) return;
-  const newStatus = document.getElementById('modal-status-select').value;
-  const note = document.getElementById('modal-note').value.trim();
-  const now = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  if (note) {
-    l.log.push({ type: 'note', text: `<strong>Team</strong> — ${note}`, time: now });
+async function saveUpdate(){
+  const l=leads.find(x=>x.id===activeLeadId);
+  if(!l) return;
+  const newStatus=document.getElementById('modal-status-select').value;
+  const note=document.getElementById('modal-note').value.trim();
+  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+  const log=Array.isArray(l.log)?[...l.log]:[];
+  if(note) log.push({type:'note',text:`<strong>Team</strong> — ${note}`,time:now});
+  if(newStatus!==l.status){
+    const st=getStatusObj(newStatus);
+    log.push({type:'note',text:`<strong>Team</strong> moved to <strong>${st.label}</strong>`,time:now});
   }
-  if (newStatus !== l.status) {
-    const st = getStatusObj(newStatus);
-    l.log.push({ type: 'note', text: `<strong>Team</strong> moved to <strong>${st.label}</strong>`, time: now });
-    l.status = newStatus;
-  }
+  const {error}=await db.from('leads').update({status:newStatus,log,updated_at:new Date().toISOString()}).eq('id',activeLeadId);
+  if(error){showToast('Error saving — try again');return;}
   closeModal('detail-modal');
-  renderAll();
+  showToast('Updated ✓');
 }
 
-function logCall() {
-  const l = leads.find(x=>x.id===activeLeadId);
-  if (!l) return;
-  const note = document.getElementById('modal-note').value.trim() || 'Called lead';
-  const now = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  l.called = true;
-  l.log.push({ type: 'call', text: `<strong>Team</strong> — ${note}`, time: now });
-  if (l.status === 'quote-sent') l.status = 'call-attempted';
+async function logCall(){
+  const l=leads.find(x=>x.id===activeLeadId);
+  if(!l) return;
+  const note=document.getElementById('modal-note').value.trim()||'Call logged';
+  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+  const log=Array.isArray(l.log)?[...l.log]:[];
+  log.push({type:'call',text:`<strong>Team</strong> — ${note}`,time:now});
+  const newStatus=l.status==='quote-sent'?'call-attempted':l.status;
+  const {error}=await db.from('leads').update({called:true,status:newStatus,log,updated_at:new Date().toISOString()}).eq('id',activeLeadId);
+  if(error){showToast('Error saving');return;}
   closeModal('detail-modal');
-  renderAll();
+  showToast('Call logged ✓');
 }
 
-function quickCall(id) {
-  const l = leads.find(x=>x.id===id);
-  if (!l) return;
-  const now = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  l.called = true;
-  l.log.push({ type: 'call', text: '<strong>Team</strong> — call logged (quick log)', time: now });
-  if (l.status === 'quote-sent') l.status = 'call-attempted';
-  renderAll();
+async function quickCall(id){
+  const l=leads.find(x=>x.id===id);
+  if(!l) return;
+  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+  const log=Array.isArray(l.log)?[...l.log]:[];
+  log.push({type:'call',text:'<strong>Team</strong> — call logged',time:now});
+  const newStatus=l.status==='quote-sent'?'call-attempted':l.status;
+  await db.from('leads').update({called:true,status:newStatus,log,updated_at:new Date().toISOString()}).eq('id',id);
+  showToast('Call logged ✓');
 }
 
-function addLead() {
-  const name = document.getElementById('f-name').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  if (!name || !phone || !email) { alert('Please fill in name, phone, and email.'); return; }
-  const now = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  const lead = {
-    id: nextId++,
-    name, phone, email,
-    company: document.getElementById('f-company').value.trim(),
-    qty: parseInt(document.getElementById('f-qty').value) || 0,
-    size: document.getElementById('f-size').value.trim() || '—',
-    product: document.getElementById('f-product').value,
-    status: 'quote-sent',
-    assigned: document.getElementById('f-assigned').value,
-    source: document.getElementById('f-source').value,
-    called: false,
-    dateAdded: new Date().toISOString().split('T')[0],
-    log: [{ type: 'note', text: `<strong>Team</strong> added lead manually`, time: now }]
+async function confirmDelete(){
+  if(!confirm('Delete this lead permanently?')) return;
+  const {error}=await db.from('leads').delete().eq('id',activeLeadId);
+  if(error){showToast('Error deleting');return;}
+  closeModal('detail-modal');
+  showToast('Lead deleted');
+}
+
+async function deleteLeadDirect(id){
+  if(!confirm('Delete this lead permanently?')) return;
+  const {error}=await db.from('leads').delete().eq('id',id);
+  if(error){showToast('Error deleting');return;}
+  showToast('Lead deleted');
+}
+
+async function addLead(){
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  if(!name||!phone||!email){alert('Name, phone and email are required.');return;}
+  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+  const notes=document.getElementById('f-notes').value.trim();
+  const lead={
+    id: Date.now(),
+    name,phone,email,
+    company:document.getElementById('f-company').value.trim(),
+    qty:parseInt(document.getElementById('f-qty').value)||0,
+    size:document.getElementById('f-size').value.trim()||'—',
+    product:document.getElementById('f-product').value,
+    status:'new-lead',
+    assigned:document.getElementById('f-assigned').value,
+    source:document.getElementById('f-source').value,
+    called:false,
+    returning_customer:false,
+    date_added:new Date().toISOString().split('T')[0],
+    notes,
+    log:[{type:'note',text:'<strong>Team</strong> — Lead added manually',time:now}]
   };
-  const notes = document.getElementById('f-notes').value.trim();
-  if (notes) lead.log.push({ type: 'note', text: `<strong>Note</strong> — ${notes}`, time: now });
-  leads.unshift(lead);
-  ['f-name','f-company','f-phone','f-email','f-qty','f-size','f-notes'].forEach(id => document.getElementById(id).value = '');
+  const {error}=await db.from('leads').insert([lead]);
+  if(error){showToast('Error adding lead: '+error.message);return;}
+  ['f-name','f-company','f-phone','f-email','f-qty','f-size','f-notes'].forEach(id=>document.getElementById(id).value='');
   closeModal('add-modal');
-  renderAll();
+  showToast('Lead added ✓');
 }
 
-function deleteLead(id) {
-  if (!confirm('Delete this lead? This cannot be undone.')) return;
-  leads = leads.filter(l => l.id !== id);
-  renderAll();
-}
-
-function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', function(e) {
-    if (e.target === this) closeModal(this.id);
-  });
+function openAddModal(){document.getElementById('add-modal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);});
 });
 
 setView('kanban');
 loadLeads();
+subscribeRealtime();
 </script>
 </body>
 </html>
