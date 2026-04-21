@@ -4,420 +4,642 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StickySitch — Sales Pipeline</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-  :root {
-    --bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EEE8;--border:#E2DED6;--border2:#CBC7BE;
-    --text:#1A1916;--text2:#6B6860;--text3:#9E9B93;--accent:#D85A30;--accent-bg:#FAECE7;--accent-text:#7A2E10;
-    --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#0F4E3A;--blue:#185FA5;--blue-bg:#E6F1FB;--blue-text:#0C3D6B;
-    --amber:#BA7517;--amber-bg:#FAEEDA;--amber-text:#5C3A0A;--purple:#534AB7;--purple-bg:#EEEDFE;--purple-text:#2E2870;
-    --gray-bg:#F0EEE8;--gray-text:#5F5E5A;--red-bg:#FCEBEB;--red-text:#7A1F1F;
-    --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
-  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-  .logo{display:flex;align-items:center;gap:10px;}
-  .logo-mark{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;}
-  .logo-mark svg{width:16px;height:16px;fill:white;}
-  .logo-name{font-size:15px;font-weight:600;letter-spacing:-0.3px;}
-  .logo-name span{color:var(--accent);}
-  .header-right{display:flex;align-items:center;gap:10px;}
-  .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;}
-  .sync-dot.offline{background:var(--accent);}
-  .sync-label{font-size:12px;color:var(--text3);}
-  .view-toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
-  .view-btn{padding:5px 12px;border-radius:5px;border:none;background:transparent;font-family:var(--font);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
-  .view-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
-  .view-btn svg{width:13px;height:13px;}
-  .add-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
-  .add-btn:hover{opacity:.88;}
-  .btn-ghost{display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
-  .stats-bar{padding:16px 24px;display:flex;gap:12px;overflow-x:auto;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:130px;flex:1;}
-  .stat-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
-  .stat-value{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-0.5px;}
-  .stat-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-  .stat-value.green{color:var(--green);}.stat-value.amber{color:var(--amber);}.stat-value.accent{color:var(--accent);}
-  .filters{padding:0 24px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .filter-btn{padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:var(--surface);font-family:var(--font);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;}
-  .filter-btn.active{background:var(--text);color:var(--surface);border-color:var(--text);}
-  .search-wrap{margin-left:auto;position:relative;}
-  .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text3);}
-  .search-input{padding:6px 12px 6px 30px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-family:var(--font);font-size:13px;color:var(--text);width:200px;outline:none;}
-  .search-input:focus{border-color:var(--border2);}
-  .search-input::placeholder{color:var(--text3);}
-  .main{padding:0 24px 40px;}
-  .kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;}
-  .k-col{min-width:220px;width:220px;flex-shrink:0;}
-  .k-col-head{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;margin-bottom:8px;}
-  .k-col-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;}
-  .k-count{font-size:11px;font-weight:500;background:var(--surface2);color:var(--text3);padding:1px 7px;border-radius:10px;}
-  .k-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,transform .1s;}
-  .k-card:hover{border-color:var(--border2);transform:translateY(-1px);}
-  .k-card.won{border-left:3px solid var(--green);}.k-card.retarget{border-left:3px solid var(--accent);}.k-card.closed{border-left:3px solid var(--border2);opacity:.7;}
-  .k-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
-  .k-card-name{font-size:13px;font-weight:600;color:var(--text);}
-  .k-card-company{font-size:11px;color:var(--text3);margin-top:1px;}
-  .k-card-size{font-size:11px;font-family:var(--mono);color:var(--text2);background:var(--surface2);padding:2px 6px;border-radius:4px;white-space:nowrap;}
-  .k-card-row{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;}
-  .badge{display:inline-flex;align-items:center;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;gap:3px;}
-  .badge-rolls{background:var(--green-bg);color:var(--green-text);}
-  .badge-sheets{background:var(--blue-bg);color:var(--blue-text);}
-  .badge-jrny{background:var(--amber-bg);color:var(--amber-text);}
-  .badge-called{background:var(--green-bg);color:var(--green-text);}
-  .badge-nocall{background:var(--gray-bg);color:var(--gray-text);}
-  .call-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
-  .call-dot.yes{background:var(--green);}.call-dot.no{background:var(--border2);}
-  .k-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
-  .k-assigned{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
-  .avatar{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;}
-  .av-d{background:var(--accent-bg);color:var(--accent-text);}
-  .av-t{background:var(--purple-bg);color:var(--purple-text);}
-  .av-o{background:var(--blue-bg);color:var(--blue-text);}
-  .k-day{font-size:11px;color:var(--text3);font-family:var(--mono);}
-  .k-day.urgent{color:var(--accent);font-weight:500;}
-  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  table{width:100%;border-collapse:collapse;}
-  thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;}
-  tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
-  tbody tr:last-child{border-bottom:none;}
-  tbody tr:hover{background:var(--surface2);}
-  tbody td{padding:11px 14px;font-size:13px;color:var(--text);vertical-align:middle;}
-  .td-name{font-weight:600;}.td-company{font-size:11px;color:var(--text3);margin-top:1px;}.td-size{font-family:var(--mono);font-size:12px;color:var(--text2);}
-  .status-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 9px;border-radius:10px;white-space:nowrap;}
-  .sp-new{background:var(--purple-bg);color:var(--purple-text);}
-  .sp-quote{background:var(--blue-bg);color:var(--blue-text);}
-  .sp-fu1{background:var(--amber-bg);color:var(--amber-text);}
-  .sp-fu2{background:var(--purple-bg);color:var(--purple-text);}
-  .sp-called{background:var(--green-bg);color:var(--green-text);}
-  .sp-connected{background:var(--green-bg);color:var(--green-text);}
-  .sp-won{background:var(--green-bg);color:var(--green-text);}
-  .sp-closed{background:var(--gray-bg);color:var(--gray-text);}
-  .sp-retarget{background:var(--accent-bg);color:var(--accent-text);}
-  .sp-reorder{background:var(--amber-bg);color:var(--amber-text);}
-  .next-action{font-size:11px;font-weight:500;}
-  .na-urgent{color:var(--accent);}.na-normal{color:var(--text2);}.na-done{color:var(--green);}.na-retarget{color:var(--amber);}
-  .action-btns{display:flex;gap:5px;}
-  .action-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-  .action-btn:hover{background:var(--surface2);border-color:var(--border2);}
-  .action-btn svg{width:13px;height:13px;color:var(--text2);}
-  .action-btn.call-btn:hover{background:var(--green-bg);border-color:var(--green);}
-  .action-btn.call-btn:hover svg{color:var(--green);}
-  .action-btn.delete-btn:hover{background:var(--red-bg);border-color:#e57373;}
-  .action-btn.delete-btn:hover svg{color:#c0392b;}
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,25,22,.45);z-index:200;align-items:center;justify-content:center;padding:20px;}
-  .modal-overlay.open{display:flex;}
-  .modal{background:var(--surface);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;border:1px solid var(--border);}
-  .modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
-  .modal-title{font-size:16px;font-weight:600;}.modal-sub{font-size:12px;color:var(--text3);margin-top:2px;}
-  .modal-close{width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);flex-shrink:0;}
-  .modal-close:hover{background:var(--surface2);}
-  .modal-body{padding:18px 20px;}
-  .modal-section{margin-bottom:18px;}
-  .modal-section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .info-item{background:var(--surface2);border-radius:8px;padding:8px 10px;}
-  .info-item-label{font-size:11px;color:var(--text3);margin-bottom:2px;}.info-item-value{font-size:13px;font-weight:500;color:var(--text);}
-  .log-entry{padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;}
-  .log-entry:last-child{border-bottom:none;}
-  .log-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-  .log-icon.email{background:var(--blue-bg);}.log-icon.call{background:var(--green-bg);}.log-icon.note{background:var(--amber-bg);}
-  .log-icon svg{width:12px;height:12px;}
-  .log-icon.email svg{color:var(--blue);}.log-icon.call svg{color:var(--green);}.log-icon.note svg{color:var(--amber);}
-  .log-text{font-size:12px;color:var(--text2);line-height:1.5;flex:1;}
-  .log-text strong{color:var(--text);font-weight:500;}
-  .log-time{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:1px;}
-  .status-select,.note-input,.form-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;background:var(--surface);color:var(--text);outline:none;}
-  .status-select:focus,.note-input:focus,.form-input:focus{border-color:var(--border2);}
-  .note-input{resize:vertical;min-height:70px;margin-bottom:8px;}
-  .note-input::placeholder,.form-input::placeholder{color:var(--text3);}
-  .status-select{margin-bottom:8px;}
-  .modal-actions{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
-  .btn-primary{flex:1;padding:9px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
-  .btn-primary:hover{opacity:.88;}
-  .btn-call{display:flex;align-items:center;gap:6px;padding:9px 14px;background:var(--green-bg);color:var(--green-text);border:1px solid var(--green);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
-  .btn-call svg{width:13px;height:13px;}
-  .btn-secondary{padding:9px 14px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;cursor:pointer;}
-  .btn-secondary:hover{background:var(--surface2);}
-  .btn-danger{padding:9px 14px;background:var(--red-bg);color:var(--red-text);border:1px solid #e57373;border-radius:8px;font-family:var(--font);font-size:13px;cursor:pointer;}
-  .form-row{margin-bottom:12px;}
-  .form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;display:block;}
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
-  .toast.show{opacity:1;}
-  @media(max-width:640px){
-    .header{padding:0 14px;}.stats-bar{padding:12px 14px;}.filters{padding:0 14px 12px;}.main{padding:0 14px 30px;}
-    .form-grid{grid-template-columns:1fr;}.search-wrap{display:none;}.logo-name{display:none;}
-  }
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F6F4F0;--surface:#FFFFFF;--surface2:#F0EDE7;--surface3:#E8E4DC;
+  --border:#DDD9D0;--border2:#C8C4BB;
+  --text:#1C1A17;--text2:#6A6760;--text3:#9E9B94;
+  --accent:#C8441A;--accent-bg:#FAEDE8;--accent-text:#7A2810;
+  --green:#1A9E75;--green-bg:#E0F5EE;--green-text:#0E4E3A;
+  --blue:#1659A0;--blue-bg:#E4F0FA;--blue-text:#0B3D6B;
+  --amber:#B87215;--amber-bg:#FAF0DA;--amber-text:#5A3A08;
+  --purple:#5247B5;--purple-bg:#EEEDFD;--purple-text:#2D2870;
+  --teal:#0E7A6A;--teal-bg:#E0F4F0;--teal-text:#074A40;
+  --red:#C23030;--red-bg:#FCEBEB;--red-text:#781E1E;
+  --coral:#B84020;--coral-bg:#FAECE7;--coral-text:#6A2210;
+  --pink:#963070;--pink-bg:#F9E8F4;--pink-text:#5A1A42;
+  --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  --rad:8px;--rad-lg:12px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-mark{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:16px;height:16px;fill:#fff;}
+.logo-name{font-size:15px;font-weight:600;letter-spacing:-.3px;}
+.logo-name span{color:var(--accent);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.view-toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad);padding:3px;gap:2px;}
+.vbtn{padding:5px 11px;border-radius:6px;border:none;background:transparent;font-family:var(--font);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;}
+.vbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.6;}
+.vbtn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.add-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.add-btn:hover{opacity:.88;}
+.settings-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:var(--rad);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;}
+.settings-btn:hover{background:var(--surface2);}
+.settings-btn svg{width:15px;height:15px;stroke:var(--text2);fill:none;stroke-width:1.6;}
+
+/* STATS */
+.stats{padding:14px 20px;display:flex;gap:10px;overflow-x:auto;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);padding:12px 15px;min-width:115px;flex:1;}
+.stat-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.stat-val{font-size:21px;font-weight:600;letter-spacing:-.5px;}
+.stat-val.g{color:var(--green);}
+.stat-val.a{color:var(--amber);}
+.stat-val.r{color:var(--accent);}
+.stat-val.b{color:var(--blue);}
+.stat-val.p{color:var(--pink);}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+
+/* FILTER AREA */
+.filter-area{padding:0 20px 14px;}
+.filter-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;align-items:center;}
+.filter-scroll::-webkit-scrollbar{height:3px;}
+.pill{padding:5px 11px;border:1px solid var(--border);border-radius:20px;background:var(--surface);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;}
+.pill:hover:not(.active){border-color:var(--border2);}
+.pill.active{background:var(--text);color:#fff;border-color:var(--text);}
+.pill-n{font-size:10px;padding:1px 5px;border-radius:8px;background:var(--surface2);color:var(--text3);}
+.pill.active .pill-n{background:rgba(255,255,255,.2);color:rgba(255,255,255,.8);}
+.filter-search{margin-top:8px;position:relative;}
+.filter-search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text3);fill:none;stroke-width:1.6;}
+.filter-search input{width:100%;padding:7px 10px 7px 28px;border:1px solid var(--border);border-radius:var(--rad);background:var(--surface);font-family:var(--font);font-size:13px;color:var(--text);outline:none;}
+.filter-search input:focus{border-color:var(--border2);}
+.filter-search input::placeholder{color:var(--text3);}
+
+/* MAIN */
+.main{padding:0 20px 40px;}
+
+/* KANBAN */
+.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;}
+.kcol{min-width:195px;width:195px;flex-shrink:0;}
+.kcol-hd{display:flex;align-items:center;justify-content:space-between;padding:7px 8px;margin-bottom:7px;}
+.kcol-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;}
+.kcol-count{font-size:10px;font-weight:500;background:var(--surface2);color:var(--text3);padding:1px 6px;border-radius:8px;}
+
+/* CARDS */
+.kcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);padding:11px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,transform .1s;position:relative;}
+.kcard:hover{border-color:var(--border2);transform:translateY(-1px);}
+.kcard.overdue{border-left:3px solid var(--accent);}
+.kcard.priority-card::after{content:'★';position:absolute;top:7px;right:8px;font-size:11px;color:var(--amber);}
+.kcard.won-card{border-left:3px solid var(--green);}
+.kcard.lost-card{border-left:3px solid var(--red);opacity:.75;}
+.kcard.retarget-card{border-left:3px solid var(--coral);}
+.kcard.closed-card{opacity:.6;}
+.kcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;}
+.kcard-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;}
+.kcard-co{font-size:10px;color:var(--text3);margin-top:1px;}
+.kcard-size{font-size:10px;font-family:var(--mono);color:var(--text2);background:var(--surface2);padding:2px 5px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+.kcard-tags{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;}
+.kcard-ft{display:flex;align-items:center;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+.kcard-who{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);}
+.kcard-day{font-size:10px;font-family:var(--mono);color:var(--text3);}
+.kcard-day.urg{color:var(--accent);font-weight:600;}
+.qnote-preview{font-size:10px;color:var(--text2);background:var(--amber-bg);border-radius:4px;padding:3px 6px;margin-top:5px;border-left:2px solid var(--amber);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.loss-reason-preview{font-size:10px;color:var(--red-text);background:var(--red-bg);border-radius:4px;padding:3px 6px;margin-top:5px;border-left:2px solid var(--red);line-height:1.4;}
+
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;gap:2px;text-transform:uppercase;letter-spacing:.04em;}
+.bdg-rolls{background:var(--green-bg);color:var(--green-text);}
+.bdg-sheets{background:var(--blue-bg);color:var(--blue-text);}
+.bdg-jrny{background:var(--amber-bg);color:var(--amber-text);}
+.bdg-called{background:var(--green-bg);color:var(--green-text);}
+.bdg-nocall{background:var(--surface2);color:var(--text3);}
+.bdg-overdue{background:var(--red-bg);color:var(--red-text);}
+.cdot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.cdot.y{background:var(--green);}
+.cdot.n{background:var(--border2);}
+
+/* AVATARS */
+.av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.av-e{background:var(--accent-bg);color:var(--accent-text);}
+.av-t{background:var(--purple-bg);color:var(--purple-text);}
+.av-d{background:var(--blue-bg);color:var(--blue-text);}
+.av-o{background:var(--surface2);color:var(--text2);}
+
+/* STATUS PILLS */
+.sp{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 9px;border-radius:10px;white-space:nowrap;}
+.sp-new{background:var(--blue-bg);color:var(--blue-text);}
+.sp-manual{background:var(--purple-bg);color:var(--purple-text);}
+.sp-quote{background:var(--teal-bg);color:var(--teal-text);}
+.sp-call{background:var(--surface2);color:var(--text2);}
+.sp-reviewing{background:var(--purple-bg);color:var(--purple-text);}
+.sp-fu3{background:var(--amber-bg);color:var(--amber-text);}
+.sp-fu7{background:var(--coral-bg);color:var(--coral-text);}
+.sp-invoiced{background:var(--green-bg);color:var(--green-text);}
+.sp-proof{background:var(--amber-bg);color:var(--amber-text);}
+.sp-won{background:var(--green-bg);color:var(--green-text);}
+.sp-lost{background:var(--red-bg);color:var(--red-text);}
+.sp-closed{background:var(--surface2);color:var(--text3);}
+.sp-retarget{background:var(--accent-bg);color:var(--accent-text);}
+
+/* TABLE */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:9px 13px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+tbody td{padding:10px 13px;font-size:13px;vertical-align:middle;}
+.td-name{font-weight:600;}
+.td-co{font-size:11px;color:var(--text3);margin-top:1px;}
+.td-sz{font-family:var(--mono);font-size:11px;color:var(--text2);}
+.td-na{font-size:11px;font-weight:500;}
+.td-na.urg{color:var(--accent);}
+.td-na.ok{color:var(--text2);}
+.td-na.done{color:var(--green);}
+.td-na.ret{color:var(--amber);}
+.td-na.lost-c{color:var(--red);}
+.abtns{display:flex;gap:4px;}
+.abtn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.abtn:hover{background:var(--surface2);border-color:var(--border2);}
+.abtn svg{width:13px;height:13px;stroke:var(--text2);fill:none;stroke-width:1.6;}
+.abtn.call:hover{background:var(--green-bg);border-color:var(--green);}
+.abtn.call:hover svg{stroke:var(--green);}
+.abtn.star svg{stroke:var(--border2);}
+.abtn.star.on svg{fill:var(--amber);stroke:var(--amber);}
+
+/* OVERDUE */
+.od-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--accent);background:var(--accent-bg);padding:2px 6px;border-radius:6px;margin-top:3px;}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(28,26,23,.52);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border:1px solid var(--border);display:flex;flex-direction:column;}
+.modal.narrow{max-width:420px;}
+.modal-hd{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:sticky;top:0;background:var(--surface);z-index:10;border-radius:14px 14px 0 0;}
+.modal-title{font-size:16px;font-weight:600;letter-spacing:-.2px;}
+.modal-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.mclose{width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text2);flex-shrink:0;transition:background .15s;}
+.mclose:hover{background:var(--surface2);}
+.mbody{padding:16px 18px;flex:1;}
+.msec{margin-bottom:16px;}
+.msec-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.msec-title svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.iitem{background:var(--surface2);border-radius:var(--rad);padding:8px 10px;}
+.iitem-lbl{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.iitem-val{font-size:13px;font-weight:500;color:var(--text);}
+.iitem-val a{color:var(--blue);text-decoration:none;}
+.iitem-val a:hover{text-decoration:underline;}
+
+/* QUICK NOTE */
+.qnote-box{background:var(--amber-bg);border:1px solid #F0C870;border-radius:var(--rad);padding:10px 12px;margin-bottom:14px;}
+.qnote-lbl{font-size:10px;font-weight:700;color:var(--amber-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.qnote-ta{width:100%;border:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);resize:none;outline:none;min-height:48px;line-height:1.5;}
+.qnote-ta::placeholder{color:var(--amber-text);opacity:.55;}
+
+/* LOSS REASON */
+.loss-box{background:var(--red-bg);border:1px solid #F0B0B0;border-radius:var(--rad);padding:12px 14px;margin-bottom:12px;}
+.loss-box-title{font-size:11px;font-weight:700;color:var(--red-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.loss-box-title svg{width:12px;height:12px;fill:currentColor;}
+.loss-ta{width:100%;border:1px solid #F0B0B0;border-radius:var(--rad);background:var(--surface);font-family:var(--font);font-size:13px;color:var(--text);resize:none;outline:none;min-height:70px;padding:8px 10px;line-height:1.5;}
+.loss-ta:focus{border-color:var(--red);}
+.loss-ta::placeholder{color:var(--text3);}
+.loss-hint{font-size:11px;color:var(--red-text);margin-top:5px;opacity:.8;}
+
+/* FORMS */
+.frow{margin-bottom:10px;}
+.flbl{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:3px;display:block;}
+.finput,.fselect,.fta{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--rad);font-family:var(--font);font-size:13px;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s;}
+.finput:focus,.fselect:focus,.fta:focus{border-color:var(--accent);}
+.finput::placeholder,.fta::placeholder{color:var(--text3);}
+.fta{resize:vertical;min-height:60px;line-height:1.5;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* VERSION HISTORY */
+.vhist{border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;}
+.vhist-row{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;}
+.vhist-row:last-child{border-bottom:none;}
+.vhist-row.cur{background:var(--surface2);}
+.vhist-tag{font-size:10px;font-weight:600;background:var(--green-bg);color:var(--green-text);padding:1px 6px;border-radius:6px;}
+.vhist-time{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* AI PANEL */
+.ai-panel{background:var(--purple-bg);border:1px solid #C5C0F0;border-radius:var(--rad);padding:12px 14px;font-size:12px;color:var(--purple-text);line-height:1.6;}
+.ai-panel-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.ai-panel-title svg{width:12px;height:12px;fill:currentColor;}
+.ai-row{padding:4px 0;border-bottom:1px solid rgba(83,74,183,.15);display:flex;gap:8px;}
+.ai-row:last-child{border-bottom:none;}
+.ai-row-lbl{font-weight:600;min-width:120px;flex-shrink:0;}
+
+/* ACTIVITY LOG */
+.log-entry{padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:9px;}
+.log-entry:last-child{border-bottom:none;}
+.log-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.log-icon svg{width:12px;height:12px;fill:currentColor;}
+.li-email{background:var(--blue-bg);color:var(--blue);}
+.li-call{background:var(--green-bg);color:var(--green);}
+.li-note{background:var(--amber-bg);color:var(--amber);}
+.li-ai{background:var(--purple-bg);color:var(--purple);}
+.li-lost{background:var(--red-bg);color:var(--red);}
+.log-txt{font-size:12px;color:var(--text2);line-height:1.5;flex:1;}
+.log-txt strong{color:var(--text);font-weight:500;}
+.log-time{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px;}
+
+/* RETARGET BANNER */
+.ret-banner{background:var(--accent-bg);border:1px solid #F5C0B0;border-radius:var(--rad);padding:9px 12px;font-size:12px;color:var(--accent-text);margin-bottom:12px;display:flex;gap:8px;line-height:1.5;}
+.ret-banner svg{width:14px;height:14px;fill:currentColor;flex-shrink:0;margin-top:1px;}
+
+/* MODAL FOOTER */
+.modal-ft{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:7px;background:var(--surface);border-radius:0 0 14px 14px;position:sticky;bottom:0;}
+.btn-primary{flex:1;padding:9px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.btn-primary:hover{opacity:.88;}
+.btn-call{display:flex;align-items:center;gap:5px;padding:9px 13px;background:var(--green-bg);color:var(--green-text);border:1px solid var(--green);border-radius:var(--rad);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
+.btn-call:hover{opacity:.85;}
+.btn-call svg{width:13px;height:13px;fill:currentColor;}
+.btn-sec{padding:9px 13px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--rad);font-family:var(--font);font-size:13px;cursor:pointer;transition:all .15s;}
+.btn-sec:hover{background:var(--surface2);}
+
+/* SETTINGS */
+.team-list{display:flex;flex-direction:column;gap:7px;}
+.team-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border-radius:var(--rad);font-size:13px;}
+.team-item-del{border:none;background:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;}
+.team-item-del:hover{color:var(--accent);}
+.team-add-row{display:flex;gap:7px;margin-top:8px;}
+.team-add-btn{padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .hdr{padding:0 12px;}
+  .stats,.filter-area,.main{padding-left:12px;padding-right:12px;}
+  .logo-name{display:none;}
+  .fgrid{grid-template-columns:1fr;}
+  .info-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 
-<header class="header">
+<header class="hdr">
   <div class="logo">
     <div class="logo-mark">
       <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 011 1v2H2V3a1 1 0 011-1zM2 6h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6zm3 2a.5.5 0 000 1h6a.5.5 0 000-1H5z"/></svg>
     </div>
-    <span class="logo-name">Sticky<span>Sitch</span></span>
+    <span class="logo-name">Sticky<span>Sitch</span> Sales</span>
   </div>
-  <div class="header-right">
-    <span class="sync-dot" id="sync-dot"></span>
-    <span class="sync-label" id="sync-label">Connecting...</span>
+  <div class="hdr-right">
     <div class="view-toggle">
-      <button class="view-btn active" id="btn-kanban" onclick="setView('kanban')">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="4" height="12" rx="1"/><rect x="6" y="2" width="4" height="8" rx="1"/><rect x="11" y="2" width="4" height="10" rx="1"/></svg>
-        Board
+      <button class="vbtn active" id="vbtn-board" onclick="setView('board')">
+        <svg viewBox="0 0 16 16"><rect x="1" y="2" width="4" height="12" rx="1"/><rect x="6" y="2" width="4" height="8" rx="1"/><rect x="11" y="2" width="4" height="10" rx="1"/></svg>Board
       </button>
-      <button class="view-btn" id="btn-table" onclick="setView('table')">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1"/><path d="M1 6h14M1 10h14M5 6v8"/></svg>
-        List
+      <button class="vbtn" id="vbtn-list" onclick="setView('list')">
+        <svg viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="12" rx="1"/><path d="M1 6h14M1 10h14M5 6v8"/></svg>List
       </button>
     </div>
-    <button class="add-btn" onclick="openAddModal()">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
-      Add lead
+    <button class="settings-btn" onclick="openModal('settings-modal')" title="Settings">
+      <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"/></svg>
+    </button>
+    <button class="add-btn" onclick="openModal('add-modal')">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.2"><path d="M7 2v10M2 7h10"/></svg>Add lead
     </button>
   </div>
 </header>
 
-<div class="stats-bar" id="stats-bar"></div>
+<div class="stats" id="stats-bar"></div>
 
-<div class="filters">
-  <button class="filter-btn active" onclick="setFilter('all',this)">All leads</button>
-  <button class="filter-btn" onclick="setFilter('needs-call',this)">Needs call</button>
-  <button class="filter-btn" onclick="setFilter('jrny',this)">JRNY leads</button>
-  <button class="filter-btn" onclick="setFilter('retarget',this)">Retarget</button>
-  <button class="filter-btn" onclick="setFilter('returning',this)">Returning</button>
-  <button class="filter-btn" onclick="setFilter('won',this)">Won</button>
-  <div class="search-wrap">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
-    <input class="search-input" type="text" placeholder="Search leads..." id="search-input" oninput="renderAll()">
+<div class="filter-area">
+  <div class="filter-scroll" id="filter-bar"></div>
+  <div class="filter-search">
+    <svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
+    <input id="search-input" placeholder="Search by name, company, status..." oninput="renderAll()">
   </div>
 </div>
 
-<div class="main" id="main-view">
+<div class="main">
   <div class="kanban" id="kanban-board"></div>
-  <div class="table-wrap" id="table-view" style="display:none;">
+  <div class="tbl-wrap" id="list-view" style="display:none;">
     <table>
-      <thead><tr><th>Lead</th><th>Product</th><th>Status</th><th>Called</th><th>Assigned</th><th>Next action</th><th></th></tr></thead>
-      <tbody id="table-body"></tbody>
+      <thead><tr>
+        <th>Lead</th><th>Product</th><th>Status</th><th>Called</th>
+        <th>Last contact</th><th>Next action</th><th></th>
+      </tr></thead>
+      <tbody id="tbl-body"></tbody>
     </table>
   </div>
 </div>
 
 <!-- DETAIL MODAL -->
-<div class="modal-overlay" id="detail-modal">
+<div class="overlay" id="detail-modal">
   <div class="modal">
-    <div class="modal-header">
-      <div><div class="modal-title" id="modal-lead-name">—</div><div class="modal-sub" id="modal-lead-company">—</div></div>
-      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    <div class="modal-hd">
+      <div><div class="modal-title" id="m-name"></div><div class="modal-sub" id="m-sub"></div></div>
+      <button class="mclose" onclick="closeModal('detail-modal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="modal-section"><div class="modal-section-title">Lead details</div><div class="info-grid" id="modal-info-grid"></div></div>
-      <div class="modal-section">
-        <div class="modal-section-title">Update status</div>
-        <select class="status-select" id="modal-status-select"></select>
-        <textarea class="note-input" id="modal-note" placeholder="Add a note (e.g. 'Called — no answer', 'Resending quote')"></textarea>
-        <div style="font-size:11px;color:var(--text3);">Updates are saved instantly and visible to everyone.</div>
+    <div class="mbody">
+      <div id="m-ret-banner" style="display:none">
+        <div class="ret-banner"><svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.5.5 0 01.5.5v3.5h2a.5.5 0 010 1h-2.5a.5.5 0 01-.5-.5V4.5A.5.5 0 018 4z"/></svg>Retarget queue — send a personalised re-engagement email ~30 days after closing.</div>
       </div>
-      <div class="modal-section"><div class="modal-section-title">Activity log</div><div id="modal-activity-log"></div></div>
+
+      <div class="msec">
+        <div class="msec-title"><svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 100 14A7 7 0 008 1z" stroke-width="1.5" fill="none"/></svg>Lead details</div>
+        <div class="info-grid" id="m-info"></div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">Quick note</div>
+        <div class="qnote-box">
+          <div class="qnote-lbl">Note (visible on card)</div>
+          <textarea class="qnote-ta" id="m-qnote" placeholder="e.g. Wants matte, unsure on qty, call back Thursday..."></textarea>
+        </div>
+      </div>
+
+      <div class="msec" id="m-loss-section" style="display:none">
+        <div class="loss-box">
+          <div class="loss-box-title"><svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3.5a.5.5 0 01.5.5v3a.5.5 0 01-1 0V5a.5.5 0 01.5-.5zm0 6a.75.75 0 110 1.5.75.75 0 010-1.5z"/></svg>Loss reason — required</div>
+          <textarea class="loss-ta" id="m-loss-reason" placeholder="Why did we lose this lead? e.g. Price too high, went with local printer, not ready yet, no response after 3 attempts..."></textarea>
+          <div class="loss-hint">This data is saved and used to improve future conversions.</div>
+        </div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">Quote details & version history</div>
+        <div class="fgrid">
+          <div class="frow"><label class="flbl">Quantity</label><input class="finput" id="m-qty" type="number"></div>
+          <div class="frow"><label class="flbl">Size</label><input class="finput" id="m-size"></div>
+          <div class="frow"><label class="flbl">Product</label>
+            <select class="fselect" id="m-product"><option>Rolls</option><option>Sheets</option></select>
+          </div>
+          <div class="frow"><label class="flbl">Material notes</label><input class="finput" id="m-material" placeholder="e.g. matte, waterproof"></div>
+        </div>
+        <div class="vhist" id="m-vhist"></div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">Update status</div>
+        <div class="fgrid">
+          <div class="frow"><label class="flbl">Status</label><select class="fselect" id="m-status" onchange="onStatusChange()"></select></div>
+          <div class="frow"><label class="flbl">Last contacted by</label><select class="fselect" id="m-contact-by"></select></div>
+        </div>
+        <div class="frow"><label class="flbl">Activity note</label>
+          <textarea class="fta" id="m-note" placeholder="e.g. Called — spoke to owner, reviewing qty. Will follow up Friday."></textarea>
+        </div>
+      </div>
+
+      <div class="msec" id="m-ai-section" style="display:none">
+        <div class="msec-title"><svg viewBox="0 0 16 16"><path d="M11.251.068a.5.5 0 01.227.58L9.677 6.5H13a.5.5 0 01.364.843l-8 8.5a.5.5 0 01-.842-.49L6.323 9.5H3a.5.5 0 01-.364-.843l8-8.5a.5.5 0 01.615-.09z" fill="currentColor" stroke="none"/></svg>AI win analysis</div>
+        <div id="m-ai-content"></div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">Activity log</div>
+        <div id="m-log"></div>
+      </div>
     </div>
-    <div class="modal-actions">
+    <div class="modal-ft">
       <button class="btn-call" onclick="logCall()">
-        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>
-        Log call
+        <svg viewBox="0 0 16 16"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>Log call
       </button>
-      <button class="btn-primary" onclick="saveUpdate()">Save update</button>
-      <button class="btn-danger" onclick="confirmDelete()">Delete</button>
-      <button class="btn-secondary" onclick="closeModal('detail-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveUpdate()">Save</button>
+      <button class="btn-sec" onclick="closeModal('detail-modal')">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ADD MODAL -->
-<div class="modal-overlay" id="add-modal">
+<!-- ADD LEAD MODAL -->
+<div class="overlay" id="add-modal">
   <div class="modal">
-    <div class="modal-header">
-      <div><div class="modal-title">Add new lead</div><div class="modal-sub">Saved instantly to the database</div></div>
-      <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+    <div class="modal-hd">
+      <div><div class="modal-title">Add new lead</div><div class="modal-sub">Enter enquiry details</div></div>
+      <button class="mclose" onclick="closeModal('add-modal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-row"><label class="form-label">Full name *</label><input class="form-input" id="f-name" placeholder="Georgina Dolling"></div>
-        <div class="form-row"><label class="form-label">Company</label><input class="form-input" id="f-company" placeholder="Dollings & Assoc"></div>
+    <div class="mbody">
+      <div class="fgrid">
+        <div class="frow"><label class="flbl">Full name *</label><input class="finput" id="a-name" placeholder="Wesley King"></div>
+        <div class="frow"><label class="flbl">Company</label><input class="finput" id="a-company" placeholder="Wez Paint An Panel"></div>
       </div>
-      <div class="form-grid">
-        <div class="form-row"><label class="form-label">Phone *</label><input class="form-input" id="f-phone" placeholder="+61 4xx xxx xxx"></div>
-        <div class="form-row"><label class="form-label">Email *</label><input class="form-input" id="f-email" placeholder="email@example.com"></div>
+      <div class="fgrid">
+        <div class="frow"><label class="flbl">Phone *</label><input class="finput" id="a-phone" placeholder="+61 4xx xxx xxx"></div>
+        <div class="frow"><label class="flbl">Email *</label><input class="finput" id="a-email" placeholder="email@example.com"></div>
       </div>
-      <div class="form-grid">
-        <div class="form-row"><label class="form-label">Quantity</label><input class="form-input" id="f-qty" type="number" placeholder="500"></div>
-        <div class="form-row"><label class="form-label">Size</label><input class="form-input" id="f-size" placeholder="50x50mm"></div>
+      <div class="fgrid">
+        <div class="frow"><label class="flbl">Quantity</label><input class="finput" id="a-qty" type="number" placeholder="500"></div>
+        <div class="frow"><label class="flbl">Size</label><input class="finput" id="a-size" placeholder="50x50mm"></div>
       </div>
-      <div class="form-grid">
-        <div class="form-row"><label class="form-label">Product</label><select class="form-input" id="f-product"><option value="Rolls">Rolls (≥500)</option><option value="Sheets">Sheets (&lt;500)</option></select></div>
-        <div class="form-row"><label class="form-label">Assigned to</label><select class="form-input" id="f-assigned"><option value="Tina">Tina</option><option value="David">David</option></select></div>
+      <div class="fgrid">
+        <div class="frow"><label class="flbl">Product type</label>
+          <select class="fselect" id="a-product"><option>Rolls</option><option>Sheets</option></select>
+        </div>
+        <div class="frow"><label class="flbl">Lead source</label>
+          <select class="fselect" id="a-source">
+            <option>JRNY / Meta</option><option>Direct enquiry</option><option>Shopify</option><option>Referral</option><option>Other</option>
+          </select>
+        </div>
       </div>
-      <div class="form-row"><label class="form-label">Lead source</label><select class="form-input" id="f-source"><option value="JRNY / Meta">JRNY / Meta</option><option value="Direct enquiry">Direct enquiry</option><option value="Shopify">Shopify</option><option value="Referral">Referral</option></select></div>
-      <div class="form-row"><label class="form-label">Notes</label><textarea class="note-input" id="f-notes" placeholder="Any extra context..."></textarea></div>
+      <div class="fgrid">
+        <div class="frow"><label class="flbl">Assigned to</label><select class="fselect" id="a-assigned"></select></div>
+        <div class="frow"><label class="flbl">Initial status</label>
+          <select class="fselect" id="a-init-status">
+            <option value="new">New Lead</option>
+            <option value="manual">Manual Quote</option>
+            <option value="quote-sent">Quote Sent</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow"><label class="flbl">Notes</label><textarea class="fta" id="a-notes" placeholder="Any extra context..."></textarea></div>
     </div>
-    <div class="modal-actions">
+    <div class="modal-ft">
       <button class="btn-primary" onclick="addLead()">Add lead</button>
-      <button class="btn-secondary" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn-sec" onclick="closeModal('add-modal')">Cancel</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settings-modal">
+  <div class="modal narrow">
+    <div class="modal-hd">
+      <div><div class="modal-title">Settings</div><div class="modal-sub">Manage team members</div></div>
+      <button class="mclose" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="msec">
+        <div class="msec-title">Team members</div>
+        <div class="team-list" id="team-list"></div>
+        <div class="team-add-row">
+          <input class="finput" id="new-member" placeholder="Add team member name...">
+          <button class="team-add-btn" onclick="addMember()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft"><button class="btn-primary" onclick="closeModal('settings-modal')">Done</button></div>
+  </div>
+</div>
 
 <script>
-const SUPABASE_URL = 'https://dkbdkogrojutolrwylwy.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrYmRrb2dyb2p1dG9scnd5bHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTMwODQsImV4cCI6MjA5MTc2OTA4NH0.SqBfJ1WtniX8U3KX-b0N8esEoUxxP5LmVCrIR8YclGY';
-
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON);
-
+/* ── DATA ── */
 const STATUSES = [
-  {id:'new-lead',label:'New Lead',pill:'sp-new'},
-  {id:'reorder',label:'Wants to Reorder',pill:'sp-reorder'},
-  {id:'quote-sent',label:'Quote Sent',pill:'sp-quote'},
-  {id:'call-attempted',label:'Call Attempted',pill:'sp-called'},
-  {id:'call-connected',label:'Call Connected',pill:'sp-connected'},
-  {id:'followup-1',label:'Day 3 Follow-up Sent',pill:'sp-fu1'},
-  {id:'followup-2',label:'Day 7 Follow-up Sent',pill:'sp-fu2'},
-  {id:'pending',label:'Pending',pill:'sp-quote'},
-  {id:'won',label:'Closed — Won',pill:'sp-won'},
-  {id:'closed',label:'Closed — No Response',pill:'sp-closed'},
-  {id:'retarget',label:'Retarget (30 days)',pill:'sp-retarget'},
+  {id:'new',       label:'New Lead',            pill:'sp-new',      col:'New Lead'},
+  {id:'manual',    label:'Manual Quote',         pill:'sp-manual',   col:'Manual Quote'},
+  {id:'quote-sent',label:'Quote Sent',           pill:'sp-quote',    col:'Quote Sent'},
+  {id:'call',      label:'Call Attempted',       pill:'sp-call',     col:'Call Attempted'},
+  {id:'reviewing', label:'Reviewing',            pill:'sp-reviewing',col:'Reviewing'},
+  {id:'fu3',       label:'Follow-up Day 3',      pill:'sp-fu3',      col:'Follow-up D3'},
+  {id:'fu7',       label:'Follow-up Day 7',      pill:'sp-fu7',      col:'Follow-up D7'},
+  {id:'invoiced',  label:'Invoiced',             pill:'sp-invoiced', col:'Invoiced'},
+  {id:'proof',     label:'Awaiting Proof',       pill:'sp-proof',    col:'Awaiting Proof'},
+  {id:'won',       label:'Closed — Won',         pill:'sp-won',      col:'Won'},
+  {id:'lost',      label:'Closed — Lost',        pill:'sp-lost',     col:'Lost'},
+  {id:'closed',    label:'Closed — No Response', pill:'sp-closed',   col:'No Response'},
+  {id:'retarget',  label:'Retarget (30 days)',   pill:'sp-retarget', col:'Retarget'},
 ];
 
-const KANBAN_COLS = [
-  {id:'new-lead',label:'New Lead'},
-  {id:'reorder',label:'Wants to Reorder'},
+const FILTERS = [
+  {id:'all',       label:'All leads'},
+  {id:'new',       label:'New'},
+  {id:'manual',    label:'Manual Quote'},
   {id:'quote-sent',label:'Quote Sent'},
-  {id:'pending',label:'Pending'},
-  {id:'call-attempted',label:'Call Attempted'},
-  {id:'followup-1',label:'Day 3 Follow-up'},
-  {id:'followup-2',label:'Day 7 Follow-up'},
-  {id:'call-connected',label:'Call Connected'},
-  {id:'won',label:'Won'},
-  {id:'closed',label:'Closed'},
-  {id:'retarget',label:'Retarget'},
+  {id:'call',      label:'Call Attempted'},
+  {id:'reviewing', label:'Reviewing'},
+  {id:'fu3',       label:'Follow-up D3'},
+  {id:'fu7',       label:'Follow-up D7'},
+  {id:'invoiced',  label:'Invoiced'},
+  {id:'proof',     label:'Awaiting Proof'},
+  {id:'won',       label:'Won'},
+  {id:'lost',      label:'Lost'},
+  {id:'closed',    label:'No Response'},
+  {id:'retarget',  label:'Retarget'},
+  {id:'priority',  label:'Priority ★'},
+  {id:'needs-call',label:'Needs Call'},
+  {id:'jrny',      label:'JRNY'},
 ];
 
-let leads = [];
+let teamMembers = ['Emmanuel','Tina','David'];
 let currentFilter = 'all';
-let currentView = 'kanban';
-let activeLeadId = null;
-const TODAY = new Date();
+let currentView = 'board';
+let activeId = null;
+let nextId = 50;
 
-function daysAgo(d){return Math.floor((TODAY-new Date(d))/86400000);}
-function fmtDate(d){return new Date(d).toLocaleDateString('en-AU',{day:'numeric',month:'short'});}
-function getStatusObj(id){return STATUSES.find(s=>s.id===id)||STATUSES[0];}
-function avatarEl(name){
-  const i=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const c=name==='David'?'av-d':name==='Tina'?'av-t':'av-o';
-  return `<div class="avatar ${c}">${i}</div>`;
+let leads = [
+  {id:1,name:'Wesley King',company:'Wez Paint An Panel',phone:'+61431595759',email:'weskingv8@hotmail.com',qty:500,size:'50x50mm',product:'Rolls',status:'new',assigned:'Emmanuel',lastContact:'Emmanuel',source:'JRNY / Meta',called:false,priority:true,dateAdded:'2026-04-19',quickNote:'Circle labels, paper. Mentioned scrap job — may be test order.',quoteVersions:[],lossReason:'',log:[{type:'note',text:'<strong>Emmanuel</strong> added lead via JRNY enquiry',time:'19 Apr, 9:00am'}]},
+  {id:2,name:'Priya Sharma',company:"Priya's Kitchen",phone:'+61412345678',email:'priya.sharma@gmail.com',qty:200,size:'40x60mm',product:'Sheets',status:'fu3',assigned:'David',lastContact:'Tina',source:'JRNY / Meta',called:true,priority:false,dateAdded:'2026-04-16',quickNote:'Food labels for jar lids. Asked about waterproof options.',quoteVersions:[{label:'v1 — 200 x 40x60mm Sheets $48',time:'16 Apr, 10:02am',cur:true}],lossReason:'',log:[{type:'email',text:'<strong>Tina</strong> sent quote — 200 x 40x60mm sheets',time:'16 Apr, 10:02am'},{type:'call',text:'<strong>David</strong> called — no answer, left voicemail',time:'17 Apr, 9:30am'},{type:'email',text:'<strong>Tina</strong> sent follow-up day 3',time:'19 Apr, 8:05am'}]},
+  {id:3,name:'Marcus Taufa',company:'MT Catering',phone:'+61498765432',email:'marcus.t@hotmail.com',qty:1000,size:'60x80mm',product:'Rolls',status:'reviewing',assigned:'Tina',lastContact:'Emmanuel',source:'Direct enquiry',called:true,priority:false,dateAdded:'2026-04-13',quickNote:'Spoke on phone — comparing 500 vs 1000. Will decide end of week.',quoteVersions:[{label:'v1 — 500 x 60x80mm Rolls $120',time:'13 Apr, 11:15am',cur:false},{label:'v2 — 1000 x 60x80mm Rolls $195',time:'15 Apr, 9:00am',cur:true}],lossReason:'',log:[{type:'email',text:'<strong>Tina</strong> sent quote v1 — 500 units',time:'13 Apr, 11:15am'},{type:'call',text:'<strong>Emmanuel</strong> called — spoke to Marcus, requested 1000 unit quote',time:'15 Apr, 9:45am'},{type:'email',text:'<strong>Tina</strong> sent updated quote v2 — 1000 units',time:'15 Apr, 9:00am'},{type:'note',text:'<strong>Emmanuel</strong> moved to Reviewing',time:'15 Apr, 9:01am'}]},
+  {id:4,name:'Amara Osei',company:'Amara Foods',phone:'+61487654321',email:'amara@amarafoods.com.au',qty:3000,size:'70x90mm',product:'Rolls',status:'won',assigned:'David',lastContact:'David',source:'JRNY / Meta',called:true,priority:false,dateAdded:'2026-04-08',quickNote:'',quoteVersions:[{label:'v1 — 3000 x 70x90mm Rolls $420',time:'8 Apr, 9:00am',cur:true}],lossReason:'',aiAnalysis:{customerType:'Food brand — sauce/packaging',product:'3000 x 70x90mm Rolls',touchThatConverted:'Same-day phone call after quote',objections:'None — price accepted on first call',whatClosed:'Immediate callback + same-day proof offer',keyInsight:'JRNY lead responded same day when called within 1hr. Warm lead + fast call = high conversion.',trainingNote:'Prioritise same-day calls for all JRNY leads. Food brands at 3000 units have low price sensitivity.'},log:[{type:'email',text:'<strong>Tina</strong> sent quote — 3000 x 70x90mm rolls $420',time:'8 Apr, 9:00am'},{type:'call',text:'<strong>David</strong> called — great chat, customer confirmed',time:'8 Apr, 9:22am'},{type:'note',text:'<strong>David</strong> marked as WON',time:'9 Apr, 2:15pm'},{type:'ai',text:'<strong>AI win analysis</strong> generated',time:'9 Apr, 2:16pm'}]},
+  {id:5,name:'Jay Patel',company:'JP Skincare',phone:'+61476543210',email:'jay.patel@icloud.com',qty:800,size:'50x70mm',product:'Rolls',status:'retarget',assigned:'Tina',lastContact:'Tina',source:'JRNY / Meta',called:false,priority:false,dateAdded:'2026-03-14',quickNote:'Never answered calls. Email only. Try personalised retarget with skincare social proof.',quoteVersions:[{label:'v1 — 800 x 50x70mm Rolls $185',time:'14 Mar, 9:00am',cur:true}],lossReason:'',log:[{type:'email',text:'<strong>Tina</strong> sent quote',time:'14 Mar, 9:00am'},{type:'email',text:'<strong>Tina</strong> sent follow-up D3',time:'17 Mar, 8:00am'},{type:'email',text:'<strong>Tina</strong> sent follow-up D7',time:'21 Mar, 8:00am'},{type:'email',text:'<strong>Tina</strong> sent close email',time:'28 Mar, 8:00am'},{type:'note',text:'<strong>Tina</strong> moved to retarget queue',time:'28 Mar, 8:01am'}]},
+  {id:6,name:'Leilani Fono',company:"Lani's Bakes",phone:'+61465432109',email:'leilani.fono@gmail.com',qty:100,size:'35x35mm',product:'Sheets',status:'call',assigned:'David',lastContact:'Emmanuel',source:'JRNY / Meta',called:true,priority:false,dateAdded:'2026-04-17',quickNote:'',quoteVersions:[{label:'v1 — 100 x 35x35mm Sheets $28',time:'17 Apr, 10:00am',cur:true}],lossReason:'',log:[{type:'email',text:'<strong>Tina</strong> sent quote',time:'17 Apr, 10:00am'},{type:'call',text:'<strong>Emmanuel</strong> called — no answer',time:'17 Apr, 10:15am'}]},
+  {id:7,name:'Rania Hassan',company:'Rania Beauty',phone:'+61454321098',email:'rania.h@hotmail.com',qty:250,size:'45x60mm',product:'Sheets',status:'proof',assigned:'Tina',lastContact:'Tina',source:'Direct enquiry',called:true,priority:true,dateAdded:'2026-04-10',quickNote:'Proof sent 17 Apr. Chase if no reply by 20 Apr.',quoteVersions:[{label:'v1 — 250 x 45x60mm Sheets $65',time:'10 Apr, 9:00am',cur:true}],lossReason:'',log:[{type:'email',text:'<strong>Tina</strong> sent quote',time:'10 Apr, 9:00am'},{type:'call',text:'<strong>Tina</strong> called — confirmed, invoice sent',time:'13 Apr'},{type:'note',text:'<strong>Tina</strong> moved to Awaiting Proof',time:'17 Apr, 2:00pm'}]},
+  {id:8,name:'Sam Nguyen',company:'Nguyen Hot Sauce',phone:'+61443210987',email:'sam@nguyensauce.com.au',qty:2000,size:'60x90mm',product:'Rolls',status:'invoiced',assigned:'Emmanuel',lastContact:'Emmanuel',source:'JRNY / Meta',called:true,priority:false,dateAdded:'2026-04-13',quickNote:'Invoice sent 16 Apr. Chase payment by 21 Apr.',quoteVersions:[{label:'v1 — 2000 x 60x90mm Rolls $310',time:'13 Apr, 10:30am',cur:true}],lossReason:'',log:[{type:'email',text:'<strong>Tina</strong> sent quote',time:'13 Apr, 10:30am'},{type:'call',text:'<strong>Emmanuel</strong> called — confirmed',time:'15 Apr, 9:15am'},{type:'note',text:'<strong>Emmanuel</strong> sent invoice',time:'16 Apr, 3:00pm'}]},
+  {id:9,name:'Bianca Torres',company:'BT Events',phone:'+61432109876',email:'bianca@btevents.com.au',qty:300,size:'80x50mm',product:'Sheets',status:'lost',assigned:'David',lastContact:'David',source:'Direct enquiry',called:true,priority:false,dateAdded:'2026-04-05',quickNote:'',quoteVersions:[{label:'v1 — 300 x 80x50mm Sheets $78',time:'5 Apr, 11:00am',cur:true}],lossReason:'Price too high — said competitor quoted $45. Wanted a discount we couldn\'t match at this quantity.',log:[{type:'email',text:'<strong>Tina</strong> sent quote',time:'5 Apr, 11:00am'},{type:'call',text:'<strong>David</strong> called — spoke with Bianca, price objection raised',time:'7 Apr, 10:00am'},{type:'lost',text:'<strong>David</strong> marked Closed — Lost. Reason: Price too high — competitor quoted $45, couldn\'t match at this qty.',time:'9 Apr, 2:00pm'}]},
+];
+
+/* ── HELPERS ── */
+function ts(){return new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});}
+function daysAgo(d){return Math.floor((Date.now()-new Date(d))/86400000);}
+function getSt(id){return STATUSES.find(s=>s.id===id)||STATUSES[0];}
+function avCls(n){return n==='Emmanuel'?'av-e':n==='Tina'?'av-t':n==='David'?'av-d':'av-o';}
+function avInit(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function avEl(n){return `<div class="av ${avCls(n)}">${avInit(n)}</div>`;}
+
+function isOverdue(l){
+  if(['won','lost','closed','retarget'].includes(l.status))return false;
+  const d=daysAgo(l.dateAdded);
+  if(l.status==='new'&&d>=1)return true;
+  if(l.status==='quote-sent'&&d>=3)return true;
+  if(l.status==='fu3'&&d>=7)return true;
+  if(l.status==='fu7'&&d>=14)return true;
+  if(l.status==='call'&&d>=2)return true;
+  if(l.status==='reviewing'&&d>=5)return true;
+  return false;
 }
 
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+function nextAction(l){
+  if(l.status==='won')return{t:'Complete',c:'done'};
+  if(l.status==='lost')return{t:'Log in loss report',c:'lost-c'};
+  if(l.status==='retarget')return{t:'Send retarget email',c:'ret'};
+  if(l.status==='closed')return{t:'Move to retarget?',c:'ok'};
+  if(l.status==='proof')return{t:'Chase proof approval',c:'urg'};
+  if(l.status==='invoiced')return{t:'Chase payment',c:'urg'};
+  if(!l.called)return{t:'Call now ↑',c:'urg'};
+  if(l.status==='new')return{t:'Send quote',c:'urg'};
+  if(l.status==='manual')return{t:'Work quote',c:'urg'};
+  if(l.status==='reviewing')return{t:'Follow-up call',c:'ok'};
+  const d=daysAgo(l.dateAdded);
+  if(l.status==='quote-sent'&&d>=3)return{t:'Send follow-up D3',c:'urg'};
+  if(l.status==='fu3'&&d>=7)return{t:'Send follow-up D7',c:'urg'};
+  if(l.status==='fu7'&&d>=14)return{t:'Send close email',c:'urg'};
+  return{t:'On track',c:'ok'};
 }
 
-function setSyncStatus(online){
-  document.getElementById('sync-dot').className='sync-dot'+(online?'':' offline');
-  document.getElementById('sync-label').textContent=online?'Live':'Offline';
+function countFilter(f){
+  return leads.filter(l=>matchFilter(l,f)).length;
 }
 
-async function loadLeads(){
-  const {data,error}=await db.from('leads').select('*').order('created_at',{ascending:false});
-  if(error){console.error(error);setSyncStatus(false);return;}
-  leads=data;
-  setSyncStatus(true);
-  renderAll();
+function matchFilter(l,f){
+  if(f==='all')return true;
+  if(f==='priority')return l.priority;
+  if(f==='needs-call')return !l.called&&!['won','lost','closed','retarget'].includes(l.status);
+  if(f==='jrny')return l.source==='JRNY / Meta';
+  return l.status===f;
 }
 
-// Real-time subscription
-function subscribeRealtime(){
-  db.channel('leads-changes')
-    .on('postgres_changes',{event:'*',schema:'public',table:'leads'},payload=>{
-      if(payload.eventType==='INSERT') leads.unshift(payload.new);
-      else if(payload.eventType==='UPDATE') leads=leads.map(l=>l.id===payload.new.id?payload.new:l);
-      else if(payload.eventType==='DELETE') leads=leads.filter(l=>l.id!==payload.old.id);
-      renderAll();
-    })
-    .subscribe(status=>{setSyncStatus(status==='SUBSCRIBED');});
-}
-
-function filteredLeads(){
-  const q=document.getElementById('search-input').value.toLowerCase();
+function filtered(){
+  const q=(document.getElementById('search-input')||{value:''}).value.toLowerCase();
   return leads.filter(l=>{
-    const ms=!q||l.name.toLowerCase().includes(q)||(l.company||'').toLowerCase().includes(q)||l.status.toLowerCase().includes(q);
-    const mf=currentFilter==='all'?true:
-      currentFilter==='needs-call'?!l.called&&l.status!=='won'&&l.status!=='closed':
-      currentFilter==='jrny'?l.source==='JRNY / Meta':
-      currentFilter==='retarget'?l.status==='retarget':
-      currentFilter==='returning'?l.returning_customer===true:
-      currentFilter==='won'?l.status==='won':true;
-    return ms&&mf;
+    const ms=!q||l.name.toLowerCase().includes(q)||(l.company||'').toLowerCase().includes(q)||getSt(l.status).label.toLowerCase().includes(q);
+    return ms&&matchFilter(l,currentFilter);
   });
 }
 
-function getNextAction(l){
-  const d=daysAgo(l.date_added);
-  if(l.status==='won') return{text:'Won',cls:'na-done'};
-  if(l.status==='retarget') return{text:'Send retarget email',cls:'na-retarget'};
-  if(l.status==='reorder') return{text:'Send reorder quote',cls:'na-urgent'};
-  if(l.status==='closed') return{text:'Move to retarget?',cls:'na-normal'};
-  if(!l.called) return{text:'Call now',cls:'na-urgent'};
-  if(l.status==='quote-sent'&&d>=3) return{text:'Send Day 3 follow-up',cls:'na-urgent'};
-  if(l.status==='followup-1'&&d>=7) return{text:'Send Day 7 follow-up',cls:'na-urgent'};
-  if(l.status==='followup-2'&&d>=14) return{text:'Send close email',cls:'na-urgent'};
-  if(l.status==='call-attempted') return{text:'Try calling again',cls:'na-normal'};
-  return{text:'On track',cls:'na-normal'};
-}
-
+/* ── RENDER ── */
 function renderStats(){
-  const total=leads.length,won=leads.filter(l=>l.status==='won').length;
-  const needsCall=leads.filter(l=>!l.called&&l.status!=='won'&&l.status!=='closed'&&l.status!=='retarget').length;
-  const retarget=leads.filter(l=>l.status==='retarget').length;
-  const rate=total>0?Math.round((won/total)*100):0;
+  const total=leads.length,won=leads.filter(l=>l.status==='won').length,
+    lost=leads.filter(l=>l.status==='lost').length,
+    rate=total?Math.round(won/total*100):0,
+    ncall=leads.filter(l=>!l.called&&!['won','lost','closed','retarget'].includes(l.status)).length,
+    hot=leads.filter(l=>['reviewing','proof','invoiced'].includes(l.status)).length,
+    ret=leads.filter(l=>l.status==='retarget').length;
   document.getElementById('stats-bar').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total leads</div><div class="stat-value">${total}</div><div class="stat-sub">all time</div></div>
-    <div class="stat-card"><div class="stat-label">Closed won</div><div class="stat-value green">${won}</div><div class="stat-sub">${rate}% conversion</div></div>
-    <div class="stat-card"><div class="stat-label">Needs call</div><div class="stat-value accent">${needsCall}</div><div class="stat-sub">not yet called</div></div>
-    <div class="stat-card"><div class="stat-label">Retarget</div><div class="stat-value amber">${retarget}</div><div class="stat-sub">30-day re-engage</div></div>`;
+    <div class="stat"><div class="stat-lbl">Total leads</div><div class="stat-val">${total}</div><div class="stat-sub">all time</div></div>
+    <div class="stat"><div class="stat-lbl">Won</div><div class="stat-val g">${won}</div><div class="stat-sub">${rate}% conversion</div></div>
+    <div class="stat"><div class="stat-lbl">Lost</div><div class="stat-val p">${lost}</div><div class="stat-sub">loss data saved</div></div>
+    <div class="stat"><div class="stat-lbl">Needs call</div><div class="stat-val r">${ncall}</div><div class="stat-sub">not yet called</div></div>
+    <div class="stat"><div class="stat-lbl">Hot pipeline</div><div class="stat-val b">${hot}</div><div class="stat-sub">reviewing/proof/invoiced</div></div>
+    <div class="stat"><div class="stat-lbl">Retarget</div><div class="stat-val a">${ret}</div><div class="stat-sub">30-day queue</div></div>
+  `;
 }
 
-function renderKanban(){
-  const fl=filteredLeads();
-  document.getElementById('kanban-board').innerHTML=KANBAN_COLS.map(col=>{
-    const cards=fl.filter(l=>l.status===col.id);
-    const wonCls=col.id==='won'?' won':col.id==='retarget'?' retarget':col.id==='closed'?' closed':'';
-    return `<div class="k-col">
-      <div class="k-col-head"><span class="k-col-title">${col.label}</span><span class="k-count">${cards.length}</span></div>
+function renderFilters(){
+  document.getElementById('filter-bar').innerHTML=FILTERS.map(f=>`
+    <button class="pill${currentFilter===f.id?' active':''}" onclick="setFilter('${f.id}')">
+      ${f.label}<span class="pill-n">${countFilter(f.id)}</span>
+    </button>`).join('');
+}
+
+function tags(l){
+  let t=`<span class="bdg bdg-${l.product.toLowerCase()}">${l.product}</span>`;
+  if(l.source==='JRNY / Meta')t+=`<span class="bdg bdg-jrny">JRNY</span>`;
+  t+=`<span class="bdg ${l.called?'bdg-called':'bdg-nocall'}"><span class="cdot ${l.called?'y':'n'}"></span>${l.called?'Called':'No call'}</span>`;
+  if(isOverdue(l))t+=`<span class="bdg bdg-overdue">Overdue</span>`;
+  return t;
+}
+
+function renderBoard(){
+  const fl=filtered();
+  document.getElementById('kanban-board').innerHTML=STATUSES.map(s=>{
+    const cards=fl.filter(l=>l.status===s.id);
+    return `<div class="kcol">
+      <div class="kcol-hd"><span class="kcol-title">${s.col}</span><span class="kcol-count">${cards.length}</span></div>
       ${cards.map(l=>{
-        const days=daysAgo(l.date_added);
-        const urgent=!l.called&&l.status!=='won'&&l.status!=='closed';
-        return `<div class="k-card${wonCls}" onclick="openDetail(${l.id})">
-          <div class="k-card-top">
-            <div><div class="k-card-name">${l.name}</div><div class="k-card-company">${l.company||''}</div></div>
-            <div class="k-card-size">${l.size||'—'}</div>
+        const od=isOverdue(l);
+        const cls=[od?'overdue':'',l.priority?'priority-card':'',
+          l.status==='won'?'won-card':'',l.status==='lost'?'lost-card':'',
+          l.status==='retarget'?'retarget-card':'',l.status==='closed'?'closed-card':''].filter(Boolean).join(' ');
+        return `<div class="kcard${cls?' '+cls:''}" onclick="openDetail(${l.id})">
+          <div class="kcard-top">
+            <div><div class="kcard-name">${l.name}</div><div class="kcard-co">${l.company||''}</div></div>
+            <div class="kcard-size">${l.size}</div>
           </div>
-          <div class="k-card-row">
-            <span class="badge badge-${(l.product||'').toLowerCase()}">${l.product||''}</span>
-            ${l.source==='JRNY / Meta'?'<span class="badge badge-jrny">JRNY</span>':''}
-            <span class="badge ${l.called?'badge-called':'badge-nocall'}">
-              <span class="call-dot ${l.called?'yes':'no'}"></span>${l.called?'Called':'Not called'}
-            </span>
-          </div>
-          <div class="k-card-footer">
-            <div class="k-assigned">${avatarEl(l.assigned||'?')} ${l.assigned||'—'}</div>
-            <div class="k-day ${urgent?'urgent':''}">Day ${days}</div>
+          <div class="kcard-tags">${tags(l)}</div>
+          ${l.quickNote?`<div class="qnote-preview">${l.quickNote}</div>`:''}
+          ${l.status==='lost'&&l.lossReason?`<div class="loss-reason-preview">Lost: ${l.lossReason}</div>`:''}
+          <div class="kcard-ft">
+            <div class="kcard-who">${avEl(l.lastContact)}<span>${l.lastContact}</span></div>
+            <div class="kcard-day${od?' urg':''}">D${daysAgo(l.dateAdded)}</div>
           </div>
         </div>`;
       }).join('')}
@@ -425,177 +647,246 @@ function renderKanban(){
   }).join('');
 }
 
-function renderTable(){
-  const fl=filteredLeads();
-  document.getElementById('table-body').innerHTML=fl.map(l=>{
-    const st=getStatusObj(l.status);
-    const na=getNextAction(l);
+function renderList(){
+  const fl=filtered();
+  document.getElementById('tbl-body').innerHTML=fl.map(l=>{
+    const st=getSt(l.status),na=nextAction(l),od=isOverdue(l);
     return `<tr onclick="openDetail(${l.id})">
-      <td><div class="td-name">${l.name}</div><div class="td-company">${l.company||''}</div></td>
-      <td><div class="td-size">${l.qty||0} × ${l.size||'—'}</div><div style="font-size:11px;color:var(--text3);">${l.product||''}</div></td>
-      <td><span class="status-pill ${st.pill}">${st.label}</span></td>
-      <td><div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);">
-        <span class="call-dot ${l.called?'yes':'no'}"></span>${l.called?'Yes':'No'}</div></td>
-      <td><div style="display:flex;align-items:center;gap:5px;">${avatarEl(l.assigned||'?')}<span style="font-size:12px;color:var(--text2);">${l.assigned||'—'}</span></div></td>
-      <td><span class="next-action ${na.cls}">${na.text}</span></td>
-      <td><div class="action-btns" onclick="event.stopPropagation()">
-        <button class="action-btn call-btn" title="Log call" onclick="quickCall(${l.id})">
-          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>
-        </button>
-        <button class="action-btn delete-btn" title="Delete" onclick="deleteLeadDirect(${l.id})">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
-        </button>
-      </div></td>
+      <td>
+        <div class="td-name">${l.priority?'<span style="color:var(--amber)">★</span> ':''}${l.name}</div>
+        <div class="td-co">${l.company||''}</div>
+        ${od?`<span class="od-tag"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.5.5 0 01.5.5v3.5h2a.5.5 0 010 1h-2.5a.5.5 0 01-.5-.5V4.5A.5.5 0 018 4z"/></svg>Overdue</span>`:''}
+      </td>
+      <td><div class="td-sz">${l.qty} × ${l.size}</div><div style="font-size:10px;color:var(--text3)">${l.product}${l.source==='JRNY / Meta'?' · JRNY':''}</div></td>
+      <td><span class="sp ${st.pill}">${st.label}</span></td>
+      <td><div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)"><span class="cdot ${l.called?'y':'n'}"></span>${l.called?'Yes':'No'}</div></td>
+      <td><div style="display:flex;align-items:center;gap:5px">${avEl(l.lastContact)}<span style="font-size:12px;color:var(--text2)">${l.lastContact}</span></div></td>
+      <td><span class="td-na ${na.c}">${na.t}</span></td>
+      <td>
+        <div class="abtns" onclick="event.stopPropagation()">
+          <button class="abtn star${l.priority?' on':''}" onclick="togglePriority(${l.id})" title="Priority">
+            <svg viewBox="0 0 16 16" stroke-width="1.4"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+          </button>
+          <button class="abtn call" title="Quick call log" onclick="quickCall(${l.id})">
+            <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>
+          </button>
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
 
-function renderAll(){renderStats();renderKanban();renderTable();}
+function renderAll(){renderStats();renderFilters();renderBoard();renderList();}
 
+/* ── VIEWS & FILTERS ── */
 function setView(v){
   currentView=v;
-  document.getElementById('kanban-board').style.display=v==='kanban'?'flex':'none';
-  document.getElementById('table-view').style.display=v==='table'?'block':'none';
-  document.getElementById('btn-kanban').classList.toggle('active',v==='kanban');
-  document.getElementById('btn-table').classList.toggle('active',v==='table');
+  document.getElementById('kanban-board').style.display=v==='board'?'flex':'none';
+  document.getElementById('list-view').style.display=v==='list'?'block':'none';
+  document.getElementById('vbtn-board').classList.toggle('active',v==='board');
+  document.getElementById('vbtn-list').classList.toggle('active',v==='list');
+}
+function setFilter(f){currentFilter=f;renderAll();}
+
+/* ── STATUS CHANGE HANDLER ── */
+function onStatusChange(){
+  const val=document.getElementById('m-status').value;
+  document.getElementById('m-loss-section').style.display=val==='lost'?'block':'none';
+  if(val==='lost')document.getElementById('m-loss-reason').focus();
 }
 
-function setFilter(f,btn){
-  currentFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+/* ── DETAIL MODAL ── */
+function openDetail(id){
+  activeId=id;
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  document.getElementById('m-name').textContent=l.name;
+  document.getElementById('m-sub').textContent=(l.company||'')+(l.source==='JRNY / Meta'?' · JRNY':'');
+  document.getElementById('m-ret-banner').style.display=l.status==='retarget'?'block':'none';
+  document.getElementById('m-loss-section').style.display=l.status==='lost'?'block':'none';
+  document.getElementById('m-loss-reason').value=l.lossReason||'';
+
+  document.getElementById('m-info').innerHTML=[
+    {lbl:'Phone',val:`<a href="tel:${l.phone}">${l.phone}</a>`},
+    {lbl:'Email',val:`<a href="mailto:${l.email}">${l.email}</a>`},
+    {lbl:'Assigned',val:l.assigned},{lbl:'Source',val:l.source},
+    {lbl:'Added',val:new Date(l.dateAdded).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})},
+    {lbl:'Days in pipeline',val:daysAgo(l.dateAdded)+' days'},
+    {lbl:'Called',val:l.called?'Yes':'<span style="color:var(--accent);font-weight:600">Not yet</span>'},
+    {lbl:'Priority',val:l.priority?'<span style="color:var(--amber);font-weight:600">★ Yes</span>':'No'},
+  ].map(x=>`<div class="iitem"><div class="iitem-lbl">${x.lbl}</div><div class="iitem-val">${x.val}</div></div>`).join('');
+
+  document.getElementById('m-qnote').value=l.quickNote||'';
+  document.getElementById('m-qty').value=l.qty||'';
+  document.getElementById('m-size').value=l.size||'';
+  document.getElementById('m-product').value=l.product||'Rolls';
+  document.getElementById('m-material').value=l.material||'';
+
+  const vh=document.getElementById('m-vhist');
+  vh.innerHTML=l.quoteVersions&&l.quoteVersions.length
+    ?[...l.quoteVersions].reverse().map(v=>`<div class="vhist-row${v.cur?' cur':''}"><span>${v.label}</span><div style="display:flex;align-items:center;gap:6px">${v.cur?'<span class="vhist-tag">Current</span>':''}<span class="vhist-time">${v.time}</span></div></div>`).join('')
+    :'<div style="padding:8px 10px;font-size:12px;color:var(--text3)">No quote versions yet.</div>';
+
+  const ss=document.getElementById('m-status');
+  ss.innerHTML=STATUSES.map(s=>`<option value="${s.id}"${s.id===l.status?' selected':''}>${s.label}</option>`).join('');
+  const cb=document.getElementById('m-contact-by');
+  cb.innerHTML=teamMembers.map(m=>`<option${m===l.lastContact?' selected':''}>${m}</option>`).join('');
+  document.getElementById('m-note').value='';
+
+  const aiSec=document.getElementById('m-ai-section');
+  if(l.status==='won'){
+    aiSec.style.display='block';
+    document.getElementById('m-ai-content').innerHTML=l.aiAnalysis
+      ?`<div class="ai-panel"><div class="ai-panel-title"><svg viewBox="0 0 16 16"><path d="M11.251.068a.5.5 0 01.227.58L9.677 6.5H13a.5.5 0 01.364.843l-8 8.5a.5.5 0 01-.842-.49L6.323 9.5H3a.5.5 0 01-.364-.843l8-8.5a.5.5 0 01.615-.09z"/></svg>Win analysis</div>${[['Customer type',l.aiAnalysis.customerType],['Product',l.aiAnalysis.product],['Touch that converted',l.aiAnalysis.touchThatConverted],['Objections raised',l.aiAnalysis.objections],['What closed it',l.aiAnalysis.whatClosed],['Key insight',l.aiAnalysis.keyInsight],['Training note',l.aiAnalysis.trainingNote]].map(([k,v])=>`<div class="ai-row"><span class="ai-row-lbl">${k}</span><span>${v}</span></div>`).join('')}</div>`
+      :'<div style="font-size:12px;color:var(--text2);padding:8px 0">Paste the email thread into the note field and save — AI analysis will be generated on next update.</div>';
+  } else { aiSec.style.display='none'; }
+
+  const logSvg={
+    email:'<path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-6.687 4.012a.5.5 0 01-.626 0L1 5.383V12a1 1 0 001 1h12a1 1 0 001-1V5.383z"/>',
+    call:'<path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/>',
+    ai:'<path d="M11.251.068a.5.5 0 01.227.58L9.677 6.5H13a.5.5 0 01.364.843l-8 8.5a.5.5 0 01-.842-.49L6.323 9.5H3a.5.5 0 01-.364-.843l8-8.5a.5.5 0 01.615-.09z"/>',
+    lost:'<path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3.5a.5.5 0 01.5.5v3a.5.5 0 01-1 0V5a.5.5 0 01.5-.5zm0 6a.75.75 0 110 1.5.75.75 0 010-1.5z"/>',
+    note:'<path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v13.5a.5.5 0 01-.777.416L8 13.101l-5.223 2.815A.5.5 0 012 15.5V2z"/>',
+  };
+  document.getElementById('m-log').innerHTML=[...l.log].reverse().map(e=>{
+    const ic=e.type==='email'?'li-email':e.type==='call'?'li-call':e.type==='ai'?'li-ai':e.type==='lost'?'li-lost':'li-note';
+    return `<div class="log-entry">
+      <div class="log-icon ${ic}"><svg viewBox="0 0 16 16">${logSvg[e.type]||logSvg.note}</svg></div>
+      <div style="flex:1"><div class="log-txt">${e.text}</div><div class="log-time">${e.time}</div></div>
+    </div>`;
+  }).join('');
+
+  openModal('detail-modal');
+}
+
+function saveUpdate(){
+  const l=leads.find(x=>x.id===activeId);if(!l)return;
+  const newSt=document.getElementById('m-status').value;
+  const note=document.getElementById('m-note').value.trim();
+  const cb=document.getElementById('m-contact-by').value;
+  const qn=document.getElementById('m-qnote').value.trim();
+  const lossReason=document.getElementById('m-loss-reason').value.trim();
+  const t=ts();
+
+  if(newSt==='lost'&&!lossReason){
+    document.getElementById('m-loss-reason').style.borderColor='var(--red)';
+    document.getElementById('m-loss-reason').focus();
+    document.getElementById('m-loss-reason').placeholder='Required — please enter a loss reason before saving.';
+    return;
+  }
+
+  l.quickNote=qn;l.lastContact=cb;
+
+  const nq=parseInt(document.getElementById('m-qty').value)||l.qty;
+  const ns=document.getElementById('m-size').value.trim()||l.size;
+  const np=document.getElementById('m-product').value;
+  const nm=document.getElementById('m-material').value.trim();
+  if(nq!==l.qty||ns!==l.size||np!==l.product||nm!==(l.material||'')){
+    if(!l.quoteVersions)l.quoteVersions=[];
+    l.quoteVersions.forEach(v=>v.cur=false);
+    const vn='v'+(l.quoteVersions.length+1);
+    l.quoteVersions.push({label:`${vn} — ${nq} x ${ns} ${np}${nm?' ('+nm+')':''}`,time:t,cur:true});
+    l.log.push({type:'note',text:`<strong>${cb}</strong> updated quote to ${vn} — ${nq} x ${ns} ${np}${nm?' ('+nm+')':''}`,time:t});
+    l.qty=nq;l.size=ns;l.product=np;l.material=nm;
+  }
+
+  if(note)l.log.push({type:'note',text:`<strong>${cb}</strong> — ${note}`,time:t});
+
+  if(newSt!==l.status){
+    const st=getSt(newSt);
+    if(newSt==='lost'){
+      l.lossReason=lossReason;
+      l.log.push({type:'lost',text:`<strong>${cb}</strong> marked Closed — Lost. Reason: ${lossReason}`,time:t});
+    } else {
+      l.log.push({type:'note',text:`<strong>${cb}</strong> moved to <strong>${st.label}</strong>`,time:t});
+    }
+    if(newSt==='won'&&!l.aiAnalysis)l.log.push({type:'ai',text:'<strong>AI analysis</strong> — paste email thread in note to generate win insights',time:t});
+    l.status=newSt;
+  } else if(newSt==='lost'&&lossReason!==l.lossReason){
+    l.lossReason=lossReason;
+    l.log.push({type:'lost',text:`<strong>${cb}</strong> updated loss reason: ${lossReason}`,time:t});
+  }
+
+  closeModal('detail-modal');renderAll();
+}
+
+function logCall(){
+  const l=leads.find(x=>x.id===activeId);if(!l)return;
+  const note=document.getElementById('m-note').value.trim()||'Called lead';
+  const cb=document.getElementById('m-contact-by').value||teamMembers[0];
+  const t=ts();
+  l.called=true;l.lastContact=cb;
+  l.log.push({type:'call',text:`<strong>${cb}</strong> — ${note}`,time:t});
+  if(['new','quote-sent'].includes(l.status))l.status='call';
+  closeModal('detail-modal');renderAll();
+}
+
+function quickCall(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  const t=ts();
+  l.called=true;l.lastContact=teamMembers[0];
+  l.log.push({type:'call',text:`<strong>${teamMembers[0]}</strong> — quick call logged`,time:t});
+  if(['new','quote-sent'].includes(l.status))l.status='call';
   renderAll();
 }
 
-function openDetail(id){
-  activeLeadId=id;
-  const l=leads.find(x=>x.id===id);
-  if(!l) return;
-  document.getElementById('modal-lead-name').textContent=l.name;
-  document.getElementById('modal-lead-company').textContent=(l.company||'')+(l.source==='JRNY / Meta'?' · JRNY lead':'');
-  document.getElementById('modal-info-grid').innerHTML=[
-    {label:'Phone',value:`<a href="tel:${l.phone}" style="color:var(--blue)">${l.phone||'—'}</a>`},
-    {label:'Email',value:`<a href="mailto:${l.email}" style="color:var(--blue);word-break:break-all">${l.email||'—'}</a>`},
-    {label:'Product',value:`${l.qty||0} × ${l.size||'—'}`},
-    {label:'Type',value:l.product||'—'},
-    {label:'Assigned',value:l.assigned||'—'},
-    {label:'Source',value:l.source||'—'},
-    {label:'Added',value:fmtDate(l.date_added)},
-    {label:'Called',value:l.called?'Yes':'<span style="color:var(--accent)">Not yet</span>'},
-  ].map(i=>`<div class="info-item"><div class="info-item-label">${i.label}</div><div class="info-item-value">${i.value}</div></div>`).join('');
-  const sel=document.getElementById('modal-status-select');
-  sel.innerHTML=STATUSES.map(s=>`<option value="${s.id}" ${s.id===l.status?'selected':''}>${s.label}</option>`).join('');
-  document.getElementById('modal-note').value='';
-  const log=Array.isArray(l.log)?l.log:[];
-  document.getElementById('modal-activity-log').innerHTML=[...log].reverse().map(e=>`
-    <div class="log-entry">
-      <div class="log-icon ${e.type||'note'}">
-        ${e.type==='email'?'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v.217l7 4.2 7-4.2V4a1 1 0 00-1-1H2zm13 2.383l-6.687 4.012a.5.5 0 01-.626 0L1 5.383V12a1 1 0 001 1h12a1 1 0 001-1V5.383z"/></svg>':
-         e.type==='call'?'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2A1.5 1.5 0 002 3.5v.5C2 10.299 6.701 15 13 15h.5a1.5 1.5 0 001.5-1.5v-1.879a.5.5 0 00-.146-.353l-2-2a.5.5 0 00-.707 0l-1.172 1.172a8.1 8.1 0 01-3.914-3.914L8.232 5.354a.5.5 0 000-.708l-2-2A.5.5 0 005.879 2.5H3.5z"/></svg>':
-         '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v13.5a.5.5 0 01-.777.416L8 13.101l-5.223 2.815A.5.5 0 012 15.5V2z"/></svg>'}
-      </div>
-      <div style="flex:1"><div class="log-text">${e.text||''}</div><div class="log-time">${e.time||''}</div></div>
-    </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No activity yet.</div>';
-  document.getElementById('detail-modal').classList.add('open');
-}
+function togglePriority(id){const l=leads.find(x=>x.id===id);if(l){l.priority=!l.priority;renderAll();}}
 
-async function saveUpdate(){
-  const l=leads.find(x=>x.id===activeLeadId);
-  if(!l) return;
-  const newStatus=document.getElementById('modal-status-select').value;
-  const note=document.getElementById('modal-note').value.trim();
-  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  const log=Array.isArray(l.log)?[...l.log]:[];
-  if(note) log.push({type:'note',text:`<strong>Team</strong> — ${note}`,time:now});
-  if(newStatus!==l.status){
-    const st=getStatusObj(newStatus);
-    log.push({type:'note',text:`<strong>Team</strong> moved to <strong>${st.label}</strong>`,time:now});
-  }
-  const {error}=await db.from('leads').update({status:newStatus,log,updated_at:new Date().toISOString()}).eq('id',activeLeadId);
-  if(error){showToast('Error saving — try again');return;}
-  closeModal('detail-modal');
-  showToast('Updated ✓');
-}
-
-async function logCall(){
-  const l=leads.find(x=>x.id===activeLeadId);
-  if(!l) return;
-  const note=document.getElementById('modal-note').value.trim()||'Call logged';
-  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  const log=Array.isArray(l.log)?[...l.log]:[];
-  log.push({type:'call',text:`<strong>Team</strong> — ${note}`,time:now});
-  const newStatus=l.status==='quote-sent'?'call-attempted':l.status;
-  const {error}=await db.from('leads').update({called:true,status:newStatus,log,updated_at:new Date().toISOString()}).eq('id',activeLeadId);
-  if(error){showToast('Error saving');return;}
-  closeModal('detail-modal');
-  showToast('Call logged ✓');
-}
-
-async function quickCall(id){
-  const l=leads.find(x=>x.id===id);
-  if(!l) return;
-  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  const log=Array.isArray(l.log)?[...l.log]:[];
-  log.push({type:'call',text:'<strong>Team</strong> — call logged',time:now});
-  const newStatus=l.status==='quote-sent'?'call-attempted':l.status;
-  await db.from('leads').update({called:true,status:newStatus,log,updated_at:new Date().toISOString()}).eq('id',id);
-  showToast('Call logged ✓');
-}
-
-async function confirmDelete(){
-  if(!confirm('Delete this lead permanently?')) return;
-  const {error}=await db.from('leads').delete().eq('id',activeLeadId);
-  if(error){showToast('Error deleting');return;}
-  closeModal('detail-modal');
-  showToast('Lead deleted');
-}
-
-async function deleteLeadDirect(id){
-  if(!confirm('Delete this lead permanently?')) return;
-  const {error}=await db.from('leads').delete().eq('id',id);
-  if(error){showToast('Error deleting');return;}
-  showToast('Lead deleted');
-}
-
-async function addLead(){
-  const name=document.getElementById('f-name').value.trim();
-  const phone=document.getElementById('f-phone').value.trim();
-  const email=document.getElementById('f-email').value.trim();
-  if(!name||!phone||!email){alert('Name, phone and email are required.');return;}
-  const now=new Date().toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
-  const notes=document.getElementById('f-notes').value.trim();
+function addLead(){
+  const name=document.getElementById('a-name').value.trim();
+  const phone=document.getElementById('a-phone').value.trim();
+  const email=document.getElementById('a-email').value.trim();
+  if(!name||!phone||!email){alert('Please fill in name, phone, and email.');return;}
+  const t=ts();
+  const notes=document.getElementById('a-notes').value.trim();
   const lead={
-    id: Date.now(),
-    name,phone,email,
-    company:document.getElementById('f-company').value.trim(),
-    qty:parseInt(document.getElementById('f-qty').value)||0,
-    size:document.getElementById('f-size').value.trim()||'—',
-    product:document.getElementById('f-product').value,
-    status:'new-lead',
-    assigned:document.getElementById('f-assigned').value,
-    source:document.getElementById('f-source').value,
-    called:false,
-    returning_customer:false,
-    date_added:new Date().toISOString().split('T')[0],
-    notes,
-    log:[{type:'note',text:'<strong>Team</strong> — Lead added manually',time:now}]
+    id:nextId++,name,phone,email,
+    company:document.getElementById('a-company').value.trim(),
+    qty:parseInt(document.getElementById('a-qty').value)||0,
+    size:document.getElementById('a-size').value.trim()||'—',
+    product:document.getElementById('a-product').value,
+    status:document.getElementById('a-init-status').value,
+    assigned:document.getElementById('a-assigned').value,
+    lastContact:teamMembers[0],
+    source:document.getElementById('a-source').value,
+    called:false,priority:false,
+    dateAdded:new Date().toISOString().split('T')[0],
+    quickNote:notes,quoteVersions:[],lossReason:'',
+    log:[{type:'note',text:`<strong>${teamMembers[0]}</strong> added lead`,time:t}]
   };
-  const {error}=await db.from('leads').insert([lead]);
-  if(error){showToast('Error adding lead: '+error.message);return;}
-  ['f-name','f-company','f-phone','f-email','f-qty','f-size','f-notes'].forEach(id=>document.getElementById(id).value='');
-  closeModal('add-modal');
-  showToast('Lead added ✓');
+  leads.unshift(lead);
+  ['a-name','a-company','a-phone','a-email','a-qty','a-size','a-notes'].forEach(id=>document.getElementById(id).value='');
+  closeModal('add-modal');renderAll();
 }
 
-function openAddModal(){document.getElementById('add-modal').classList.add('open');}
+/* ── SETTINGS ── */
+function renderTeamList(){
+  document.getElementById('team-list').innerHTML=teamMembers.map((m,i)=>`
+    <div class="team-item">
+      <span style="display:flex;align-items:center;gap:8px">${avEl(m)}<strong>${m}</strong>${i===0?' <span style="font-size:11px;color:var(--text3)">(default)</span>':''}</span>
+      ${i>0?`<button class="team-item-del" onclick="removeMember(${i})">×</button>`:''}
+    </div>`).join('');
+  ['m-contact-by','a-assigned'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML=teamMembers.map(m=>`<option>${m}</option>`).join('');
+  });
+}
+function addMember(){
+  const v=document.getElementById('new-member').value.trim();
+  if(v&&!teamMembers.includes(v)){teamMembers.push(v);document.getElementById('new-member').value='';renderTeamList();renderAll();}
+}
+function removeMember(i){teamMembers.splice(i,1);renderTeamList();renderAll();}
+
+/* ── MODAL HELPERS ── */
+function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(el=>{
+document.querySelectorAll('.overlay').forEach(el=>{
   el.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);});
 });
 
-setView('kanban');
-loadLeads();
-subscribeRealtime();
+/* ── INIT ── */
+renderTeamList();
+setView('board');
+renderAll();
 </script>
 </body>
 </html>
